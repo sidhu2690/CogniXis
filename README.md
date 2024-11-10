@@ -2,7 +2,7 @@
 
 A space to share and develop creative project ideas for AGI!
 
-![Coming Soon](https://media.giphy.com/media/l0HUqsz2jdQYElRm0/giphy.gif)
+![Coming Soon](https://media.giphy.com/media/j2pOGeGYKe2xCCKwfi/giphy.gif)
 
 ---
 
