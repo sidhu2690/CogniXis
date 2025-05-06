@@ -142,9 +142,9 @@
             <li><a href="#loss-functions-backprop" class="sidebar-link">9. Choosing the Loss Function</a></li>
             <li><a href="#backpropagation-algorithm" class="sidebar-link">10. Backpropagation Algorithm</a></li>
             <li><a href="#computing-gradients-backprop" class="sidebar-link">11. Computing Gradients with Backpropagation</a></li>
-            <li><a href="#activation-derivatives" class="sidebar-link">5. Derivation of Activation Functions</a></li>
-            <li><a href="#conclusion" class="sidebar-link">6. Conclusion</a></li>
-
+            <li><a href="#activation-derivatives" class="sidebar-link">12. Derivation of Activation Functions</a></li>
+            <li><a href="#gradient-code" class="sidebar-link">13. Simple Gradient Descent Code</a></li>
+            <li><a href="#conclusion" class="sidebar-link">14. Conclusion</a></li>
 
 
         </ul>
@@ -231,7 +231,7 @@
 
 
 <section id="gradient-descent">
-    <h2>6. Gradient Descent</h2>
+    <h2>5. Gradient Descent</h2>
     <p>Imagine you’re lost on a foggy hill and want to reach the valley below. You can’t see far, but you can feel the slope beneath your feet. By stepping in the direction that feels most downhill, you gradually descend. In machine learning, this hill is our loss function \( L(w,b) \), a surface defined over the parameters \( w \) (weight) and \( b \) (bias). The valley is the point where the loss is minimized—our goal. Gradient descent is the algorithm that guides us there systematically.</p>
 
     <p>The gradient of the loss, denoted \( \nabla L(w,b) = \left( \frac{\partial L}{\partial w}, \frac{\partial L}{\partial b} \right) \), is a vector that points in the direction where the loss increases most steeply. To reduce the loss, we move in the opposite direction, updating our parameters as follows:</p>
@@ -424,7 +424,7 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
         </section>
 
 <section id="feedforward">
-    <h2>7. Feedforward Neural Networks</h2>
+    <h2>8. Feedforward Neural Networks</h2>
     <p>Before we dive into backpropagation, let’s understand how a neural network makes predictions. This is called the feedforward process. Imagine a neural network as a series of layers where information flows forward from the input to the output, like water through a pipeline.</p>
     <p>Our data consists of pairs \( \{x_i, y_i\} \) for \( i = 1 \) to \( N \), where \( x_i \) is the input and \( y_i \) is the target output. The model’s job is to predict \( \hat{y}_i = f(x_i) \). In our example, we’re using a neural network with three layers: an input layer, two hidden layers, and an output layer. Here’s how it looks mathematically:</p>
     <p>\[ \hat{y}_i = f(x_i) = O(W_3 g(W_2 g(W_1 x_i + b_1) + b_2) + b_3) \]</p>
@@ -440,7 +440,7 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
 </section>
 
 <section id="loss-functions-backprop">
-    <h2>8. Choosing the Loss Function</h2>
+    <h2>9. Choosing the Loss Function</h2>
     <p>Now that we can make predictions, we need a way to measure how good or bad they are. That’s where the loss function \( L(\theta) \) comes in—it tells us the error between our prediction \( \hat{y}_i \) and the true value \( y_i \). The choice depends on what we’re trying to do.</p>
     <h3>Regression Example (e.g., Movie Ratings)</h3>
     <p>Suppose we’re predicting movie ratings, where \( y_i \) is a vector of numbers (say, three ratings in \( \mathbb{R}^3 \)). We want \( \hat{y}_i \) to be close to \( y_i \). A common choice is the squared error loss:</p>
@@ -458,7 +458,7 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
 
 
 <section id="backpropagation-algorithm">
-    <h2>9. Backpropagation Algorithm</h2>
+    <h2>10. Backpropagation Algorithm</h2>
     <p>Here’s where the magic happens! Backpropagation is how we figure out how to adjust all those parameters \( \theta = \{W_1, W_2, W_3, b_1, b_2, b_3\} \) to reduce the loss. The idea is simple: we start at the output, see how wrong we are, and work backward through the network, sharing the blame with each layer.</p>
     <p>Imagine you baked a cake, and it tastes bad. You ask, “Was it the frosting? The batter? The oven?” Backpropagation does this by using the chain rule from calculus to pass the error backward, layer by layer. For our three-layer network, we need gradients like \( \nabla_{W_1} L \), \( \nabla_{b_1} L \), and so on, for all weights and biases.</p>
     <p>Intuitively, we tell the output layer, “Hey, your prediction \( \hat{y} \) isn’t right!” It replies, “I did my best with what the hidden layer gave me via \( W_3 \) and \( b_3 \).” So, we ask the second hidden layer \( h_2 \), “Why didn’t you help better?” It says, “Blame \( W_2 \) and \( b_2 \), and what I got from \( h_1 \).” We keep going back until we’ve talked to everyone. This backward pass computes how much each parameter contributed to the error.</p>
@@ -477,7 +477,7 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
 </section>
 
 <section id="computing-gradients-backprop">
-    <h2>10. Computing Gradients with Backpropagation</h2>
+    <h2>11. Computing Gradients with Backpropagation</h2>
     <p>Let’s calculate the gradients step by step for our network with cross-entropy loss and softmax output. Our focus is on the cross-entropy loss and softmax output. We’ll start with the gradient with respect to the output units.</p>
     <h3>Gradient w.r.t. Output Units</h3>
     <p>First, let’s consider the partial derivative with respect to the \( i \)-th output. The loss is defined as:</p>
@@ -570,7 +570,7 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
 </section>
 
 <section id="activation-derivatives">
-    <h2>Derivation of Activation Functions</h2>
+    <h2>12. Derivation of Activation Functions</h2>
     <p>Now, the only thing we need to figure out is how to compute the derivatives of our activation functions, which we’ll call \( g'(z) \). These derivatives are key in backpropagation for tweaking our neural network to learn better. Let’s dive into two popular ones: the logistic (sigmoid) function and the hyperbolic tangent (tanh) function. I’ll break it down step by step so it’s easy to follow!</p>
 
     <h3>Derivative of the Logistic (Sigmoid) Function</h3>
@@ -623,8 +623,53 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
     <p>These derivatives are gold in backpropagation—they help us adjust the network efficiently using values we already computed. Try them out in your next model!</p>
 </section>
 
+<section id="gradient-code">
+    <h2>13. Simple Gradient Descent Code</h2>
+    <p>Below is a basic Python example showing how a single‑input sigmoid model learns via gradient descent. We’ve changed the data points and initial values for a fresh look.</p>
+    <pre><code class="language-python">
+X = [0.4, 3.2]
+Y = [0.1, 0.85]
+
+def sigmoid(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+def compute_loss(w, b):
+    total = 0.0
+    for x, y in zip(X, Y):
+        pred = sigmoid(w, b, x)
+        total += 0.5 * (pred - y) ** 2
+    return total
+
+def grad_w(w, b, x, y):
+    pred = sigmoid(w, b, x)
+    return (pred - y) * pred * (1 - pred) * x
+
+def grad_b(w, b, x, y):
+    pred = sigmoid(w, b, x)
+    return (pred - y) * pred * (1 - pred)
+
+def train():
+    w, b = 0.8, -0.3
+    lr, epochs = 0.05, 500
+    for epoch in range(epochs):
+        dw = db = 0.0
+        for x, y in zip(X, Y):
+            dw += grad_w(w, b, x, y)
+            db += grad_b(w, b, x, y)
+        w -= lr * dw
+        b -= lr * db
+        if epoch % 100 == 0:
+            loss = compute_loss(w, b)
+            print(f"Epoch {epoch:4d}: loss={loss:.4f}, w={w:.3f}, b={b:.3f}")
+    return w, b
+
+final_w, final_b = train()
+print(f"Trained parameters → w: {final_w:.3f}, b: {final_b:.3f}")
+    </code></pre>
+</section>
+
 <section id="conclusion">
-    <h2>8. Conclusion</h2>
+    <h2>14. Conclusion</h2>
     <p>We started with a single input and saw how a simple neural network makes a guess, checks its mistake, and then learns by adjusting its knobs. That cycle—feedforward, measuring loss, and backpropagation—lets the model learn from data step by step. Even with just one input and one output, you saw the core idea in action.</p>
     <p>In larger networks, there are more layers and more data, but the heart of learning remains the same: follow the gradient downhill to reduce errors. Now that you understand how gradients flow backward through the network, you’re ready to try bigger models, explore different activation functions, or use new loss functions. Keep experimenting, have fun with your code, and watch your models learn!</p>
 </section>
