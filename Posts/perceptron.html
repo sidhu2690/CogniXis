@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Perceptron Intuition: From Biology to Machine Learning</title>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .styled-table th {
+            background-color: #2588df;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table tbody tr:hover { background-color: #f1f1f1; }
+        .styled-table tbody tr.active-row { font-weight: bold; color: #2588df; }
+    </style>
+</head>
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="#top" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+        <ul>
+            <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
+            <li><a href="#biological-inspiration" class="sidebar-link">2. Biological Inspiration</a></li>
+            <li><a href="#perceptron-basics" class="sidebar-link">3. Perceptron Basics</a></li>
+            <li><a href="#linear-models" class="sidebar-link">4. Linear Models and Regression</a></li>
+            <li><a href="#mathematical-perceptron" class="sidebar-link">5. Mathematical Perceptron</a></li>
+            <li><a href="#activation-functions" class="sidebar-link">6. Activation Functions</a></li>
+            <li><a href="#code-example" class="sidebar-link">7. Code Example</a></li>
+            <li><a href="#conclusion" class="sidebar-link">8. Conclusion</a></li>
+        </ul>
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Perceptron Intuition: From Biology to Machine Learning</h1>
+            <p><em>Exploring the perceptron’s roots in biology, its mechanics, and its evolution into modern machine learning concepts.</em></p>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Hey there! Today, we’re diving into something super cool: the perceptron. It’s one of the simplest yet most foundational ideas in machine learning, and it’s got a story that starts with the human brain and ends with computers making decisions. In this post, we’ll walk through its biological inspiration, how it works with weights and biases, and even code one from scratch using NumPy. Plus, we’ll connect it to linear models like house price prediction and explore why activation functions matter. Ready? Let’s get started!</p>
+        </section>
+
+
+<section id="biological-inspiration">
+    <h2>2. Biological Inspiration</h2>
+    <p>Let’s kick things off with the biological neuron—the real MVP behind the perceptron. Think of it like this: in your brain, neurons are tiny cells that help you think, move, and feel. They pass messages around using electrical signals, kind of like how messages travel through wires.</p>
+    <p>Each neuron has parts that do specific jobs. <strong>Dendrites</strong> are like little branches that catch signals coming in from other neurons. These signals go to the <strong>cell body</strong>, which adds them up. If the signals are strong enough, the neuron decides to fire—meaning it sends its own signal out through a long part called the <strong>axon</strong>.</p>
+    <p>At the end of the axon, the message jumps across a tiny gap called a <strong>synapse</strong> to the next neuron. If the message is strong, the next neuron might fire too—and the process keeps going. If not, it stays quiet.</p>
+    <p>This fire-or-don’t-fire behavior is what inspired the perceptron. The perceptron is a super simple version of this idea. It takes some inputs, checks how strong they are (with weights), adds a little extra push or pull (the bias), and decides whether to "fire" or not. If it does, it gives an output of 1; if not, it gives 0. Simple, right? That’s the idea we’ll build on!</p>
+    <div class="center-figure">
+        <img src="assets\perceptron\neuron.png" alt="Biological Neuron">
+        <figcaption>Figure 1: Diagram of a biological neuron with dendrites, cell body, and axon.</figcaption>
+    </div>
+</section>
+
+
+        <section id="perceptron-basics">
+            <h2>3. Perceptron Basics</h2>
+            <p>So, what’s a perceptron? It’s a model that takes a bunch of inputs, gives each one a weight (like how important it is), adds a bias (a little nudge), and uses a step function to decide: 0 or 1. Simple, but powerful for binary classification—like saying “yes” or “no” to something.</p>
+            <p>Here’s the breakdown:</p>
+            <ul>
+                <li><strong>Step Function:</strong> If the weighted sum of inputs plus bias is positive, output 1; otherwise, 0. It’s like the neuron firing!</li>
+                <li><strong>Weights:</strong> These tweak how much each input matters.</li>
+                <li><strong>Bias:</strong> Shifts the decision line so it’s not stuck at zero.</li>
+            </ul>
+            <p>For example, imagine classifying whether it’s a good day for a picnic based on temperature and rain. The perceptron learns weights for those inputs and a bias to say “go” or “stay.”</p>
+            <div class="center-figure">
+                <img src="placeholder.png" alt="Perceptron Diagram">
+                <figcaption>Figure 2: A perceptron with inputs, weights, bias, and step function.</figcaption>
+            </div>
+        </section>
+
+        <section id="linear-models">
+            <h2>4. Linear Models and Regression</h2>
+            <p>Before we go deeper, let’s talk about linear models—because the perceptron’s got some family ties here. Take linear regression: it predicts a number, like a house price, based on something like its area. The formula’s simple: \( \text{price} = w \times \text{area} + b \). Here, \( w \) is the weight (how much area affects price), and \( b \) is the bias (base price).</p>
+            <p>If we figure out \( w \) and \( b \), we can plug in any area and predict the price. Check this out:</p>
+            <div class="center-figure">
+                <img src="placeholder.png" alt="Linear Regression">
+                <figcaption>Figure 3: House prices vs. area with a fitted regression line.</figcaption>
+            </div>
+            <p>But houses aren’t just about area, right? What about bedrooms or location? That’s multiple linear regression: \( \text{price} = w_1 \times \text{area} + w_2 \times \text{bedrooms} + w_3 \times \text{location} + b \). We’re still assuming a linear relationship—everything adds up neatly.</p>
+        </section>
+
+        <section id="mathematical-perceptron">
+            <h2>5. Mathematical Perceptron</h2>
+            <p>Now, let’s make this mathematical with the perceptron. It’s like regression, but instead of a number, it gives a yes/no answer. We designed it with weights and bias, just like before. In the house example, imagine classifying houses as “affordable” or “not.” The perceptron computes \( w_1 \times \text{area} + w_2 \times \text{bedrooms} + b \), and if it’s ≥ 0, it’s affordable (1); otherwise, not (0).</p>
+            <p>Without an activation function, that’s the raw perceptron—just a linear combo. The weights decide how much each feature tips the scale, and the bias adjusts the cutoff.</p>
+            <div class="center-figure">
+                <img src="placeholder.png" alt="Perceptron Decision Boundary">
+                <figcaption>Figure 4: Decision boundary separating affordable and non-affordable houses.</figcaption>
+            </div>
+        </section>
+
+        <section id="activation-functions">
+            <h2>6. Activation Functions</h2>
+            <p>But what if there’s no linear relationship? Like, maybe tiny and huge houses are cheap, but medium ones are pricey? A straight line won’t cut it. That’s where activation functions come in. The step function we’ve used is one, but it’s limited to linear stuff.</p>
+            <p>Enter activations like sigmoid or ReLU—they bend the output, letting us handle curves and twists in the data. They’re super important because real-world problems are messy, and linear models alone can’t always keep up.</p>
+            <div class="center-figure">
+                <img src="placeholder.png" alt="Activation Functions">
+                <figcaption>Figure 5: Step, sigmoid, and ReLU functions showing linear vs. non-linear behavior.</figcaption>
+            </div>
+        </section>
+
+        <section id="code-example">
+            <h2>7. Code Example</h2>
+            <p>Time to get hands-on! Here’s a perceptron coded from scratch with NumPy to classify points—like an AND gate (1 only if both inputs are 1):</p>
+            <pre><code>import numpy as np
+
+class Perceptron:
+    def __init__(self, learning_rate=0.1, n_iters=100):
+        self.lr = learning_rate
+        self.n_iters = n_iters
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        self.weights = np.zeros(X.shape[1])
+        self.bias = 0
+        for _ in range(self.n_iters):
+            for i, x in enumerate(X):
+                linear = np.dot(x, self.weights) + self.bias
+                y_pred = 1 if linear >= 0 else 0
+                update = self.lr * (y[i] - y_pred)
+                self.weights += update * x
+                self.bias += update
+
+    def predict(self, X):
+        linear = np.dot(X, self.weights) + self.bias
+        return np.where(linear >= 0, 1, 0)
+
+# Test it
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y = np.array([0, 0, 0, 1])
+p = Perceptron()
+p.fit(X, y)
+print(p.predict(X))  # Should output [0 0 0 1]
+</code></pre>
+            <p>It’s basic, but it learns! The weights and bias adjust to nail that AND logic.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2>8. Conclusion</h2>
+            <p>And there you have it—the perceptron, from brain cells to code. We’ve seen how it’s inspired by neurons, uses weights and bias for decisions, and ties into linear models like house price prediction. Plus, we’ve peeked at why activation functions matter when things get non-linear. It’s a small step, but it’s the foundation of so much more in machine learning. Hope you enjoyed this ride—keep tinkering and exploring!</p>
+        </section>
+    </div>
+</body>
+</html>
