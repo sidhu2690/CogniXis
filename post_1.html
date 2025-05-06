@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Introduction to Machine Learning</title>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .styled-table th {
+            background-color: #2588df;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table tbody tr:hover { background-color: #f1f1f1; }
+        .styled-table tbody tr.active-row { font-weight: bold; color: #2588df; }
+    </style>
+</head>
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="#top" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+        <ul>
+            <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
+            <li><a href="#background" class="sidebar-link">2. Categories of ML</a></li>
+            <li><a href="#ml-vs-dl" class="sidebar-link">3. ML vs DL</a></li>
+            <li><a href="#real-world" class="sidebar-link">4. Real-World Applications</a></li>
+            <li><a href="#conclusion" class="sidebar-link">5. Conclusion</a></li>
+            <li><a href="#references" class="sidebar-link">6. References</a></li>
+        </ul>
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Introduction to Machine Learning</h1>
+            <p><em>A concise overview of Machine Learning, its primary types, distinctions from Deep Learning, and key applications.</em></p>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Welcome to the fascinating world of Machine Learning! Whether you're a curious beginner or looking to refresh your knowledge, this blog will guide you through the essentials of Machine Learning (ML) in a clear and engaging way.</p>
+            <p>Machine Learning is a branch of artificial intelligence that focuses on building systems capable of improving their performance on tasks through experience. Instead of programming a computer with a strict set of rules, we feed it data and let it figure out patterns on its own. These patterns allow the system to make predictions or decisions when it encounters new information.</p>
+            <p>Think of it like teaching a child to recognize animals. You show them pictures of cats and dogs, pointing out the differences—like whiskers or tail shapes. After a while, the child can identify a new animal based on what they’ve learned. Machine Learning works in a similar way: it learns from examples rather than following pre-written instructions.</p>
+        </section>
+
+        <section id="background">
+            <h2>2. Categories of Machine Learning</h2>
+            <p>To appreciate the breadth of Machine Learning, it’s essential to understand its main categories. Let’s break them down with some everyday analogies and examples.</p>
+            <ul>
+                <li><strong>Supervised Learning:</strong> Imagine having a teacher guide you through your homework. The teacher provides the correct answers (known as labeled data), and you learn by studying these examples. In supervised learning, algorithms are trained on datasets where each input is paired with the right output. For instance, in email spam detection, the system learns from emails marked as "spam" or "not spam." Once trained, it can classify new emails accurately. This category includes tasks like regression—predicting numbers, such as house prices—and classification—sorting things into categories, like identifying whether a tumor is benign or malignant.</li>
+                <li><strong>Unsupervised Learning:</strong> Picture exploring a new city without a map or guidebook. You wander around, noticing patterns—like busy streets or quiet neighborhoods—without anyone telling you what’s what. Unsupervised learning is similar: the algorithm explores unlabeled data to find hidden structures or groupings. A great example is customer segmentation in marketing. Businesses use it to group customers based on buying habits, helping them tailor their strategies. Common techniques include clustering (e.g., K-means, which bunches similar items together) and dimensionality reduction (e.g., PCA, which simplifies complex data).</li>
+                <li><strong>Reinforcement Learning:</strong> Think of training a puppy. When it sits on command, you give it a treat; when it misbehaves, you say "no." Over time, it learns the best actions to take. Reinforcement learning follows this idea: an agent learns by interacting with an environment, earning rewards for good choices and penalties for bad ones. It’s used in exciting areas like self-driving cars, where the car learns to navigate roads by trial and error, or in video games, where AI figures out winning strategies.</li>
+            </ul>
+        </section>
+
+        <section id="ml-vs-dl">
+            <h2>3. Machine Learning vs Deep Learning</h2>
+            <p>While Machine Learning covers a wide range of techniques, one subset has been making waves in recent years: Deep Learning. Let’s dive into how it differs from traditional Machine Learning approaches.</p>
+            <p>Deep Learning (DL) is a specialized part of ML that uses artificial neural networks—computational models inspired by the human brain—to process data. These networks have multiple layers that automatically learn features from raw information, like recognizing faces in photos without being told what to look for. In contrast, traditional ML often requires human experts to manually pick out these features, such as edges or shapes in an image.</p>
+            <p>For example, if you’re building an image recognition system, a traditional ML approach might involve steps like detecting edges, identifying shapes, and combining them into objects—all designed by hand. A Deep Learning model, however, can take the raw pixels of an image and learn to spot cats, dogs, or cars all on its own, as long as it has enough data to train on.</p>
+            <p>But this power has trade-offs. Here are the key differences:</p>
+            <ul>
+                <li><strong>Feature Engineering:</strong> In traditional ML, humans design the features the algorithm uses, which takes time and expertise. Deep Learning skips this step by learning features automatically through its layers.</li>
+                <li><strong>Data Requirements:</strong> Deep Learning thrives on massive datasets—think millions of images or hours of audio. Traditional ML can often get by with smaller, more manageable datasets.</li>
+                <li><strong>Compute Resources:</strong> Deep Learning models are resource-hungry, relying on powerful hardware like GPUs (graphics processing units) to crunch through data. Many traditional ML models are lighter and can run on standard computers.</li>
+            </ul>
+        </section>
+
+        <section id="real-world">
+            <h2>4. Real-World Applications</h2>
+            <p>The true magic of Machine Learning shines in its real-world applications. It’s transforming industries in ways we interact with every day. Here are some standout examples:</p>
+            <ul>
+                <li><strong>Healthcare:</strong> ML helps doctors spot diseases like cancer by analyzing medical images with incredible accuracy, often catching issues earlier than human eyes alone. It’s also speeding up drug discovery by predicting how new compounds might work and tailoring treatment plans to individual patients based on their unique data.</li>
+                <li><strong>Finance:</strong> Ever wonder how banks catch fraud? ML detects unusual patterns in transactions—like a sudden spending spree halfway across the world—and flags them instantly. It also drives algorithmic trading, where computers make split-second stock market decisions, and helps assess credit risk for loans.</li>
+                <li><strong>Retail:</strong> Those product recommendations on Amazon or movie suggestions on Netflix? That’s ML at work, studying your past choices to predict what you’ll like next. Retailers also use it to forecast demand and optimize inventory, ensuring shelves are stocked just right.</li>
+                <li><strong>Autonomous Vehicles:</strong> Self-driving cars rely on ML to "see" the world—spotting pedestrians, traffic signs, and other vehicles—while planning safe routes and controlling the car’s movements. It’s like giving a car its own brain!</li>
+                <li><strong>Natural Language Processing:</strong> ML powers tools that understand and generate human language. Think of Google Translate turning English into Spanish, sentiment analysis gauging how people feel on social media, or chatbots like Siri and Alexa chatting with you naturally.</li>
+            </ul>
+        </section>
+
+        <section id="conclusion">
+            <h2>5. Conclusion</h2>
+            <p>Machine Learning is revolutionizing how we interact with technology, making it smarter and more intuitive. From diagnosing diseases to driving cars, recommending movies to translating languages, ML is woven into the fabric of modern life. As we generate more data every day, its potential to solve big problems and improve our world grows endlessly.</p>
+            <p>By understanding its core categories—supervised, unsupervised, and reinforcement learning—and how it differs from Deep Learning, you’re taking the first step into this exciting field. ML isn’t just a buzzword; it’s a transformative force shaping our future. Keep exploring, and who knows? You might create the next groundbreaking ML innovation!</p>
+        </section>
+
+        <section id="references">
+            <h2>6. References</h2>
+            <ol>
+                <li>Tom M. Mitchell, <em>Machine Learning</em>, McGraw Hill, 1997.</li>
+                <li>Ian Goodfellow, Yoshua Bengio, and Aaron Courville, <em>Deep Learning</em>, MIT Press, 2016.</li>
+                <li>Y. LeCun, Y. Bengio, G. Hinton, "Deep learning," <em>Nature</em>, 2015.</li>
+            </ol>
+        </section>
+    </div>
+</body>
+</html>
