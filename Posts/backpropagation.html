@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Introduction to Machine Learning</title>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <!-- Include Three.js, dat.gui, and OrbitControls for 3D visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .styled-table th {
+            background-color: #2588df;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table tbody tr:hover { background-color: #f1f1f1; }
+        .styled-table tbody tr.active-row { font-weight: bold; color: #2588df; }
+        #visualization-container {
+            width: 600px;
+            height: 400px;
+            position: relative;
+            margin: 20px auto;
+        }
+        #gui {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="#top" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+        <ul>
+            <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
+            <li><a href="#model" class="sidebar-link">2. Our Simple Model</a></li>
+            <li><a href="#objective" class="sidebar-link">3. Training Objective</a></li>
+            <li><a href="#guesswork" class="sidebar-link">4. Trying Guesswork</a></li>
+            <li><a href="#gradient-descent" class="sidebar-link">5. Gradient Descent</a></li>
+            <li><a href="#gradients" class="sidebar-link">6. Computing Gradients</a></li>
+            <li><a href="#example" class="sidebar-link">7. Step-by-Step Example</a></li>
+            <li><a href="#feedforward" class="sidebar-link">8. Feedforward Neural Networks</a></li>
+            <li><a href="#loss-functions-backprop" class="sidebar-link">9. Choosing the Loss Function</a></li>
+            <li><a href="#backpropagation-algorithm" class="sidebar-link">10. Backpropagation Algorithm</a></li>
+            <li><a href="#computing-gradients-backprop" class="sidebar-link">11. Computing Gradients with Backpropagation</a></li>
+            <li><a href="#activation-derivatives" class="sidebar-link">5. Derivation of Activation Functions</a></li>
+            <li><a href="#conclusion" class="sidebar-link">6. Conclusion</a></li>
+
+
+
+        </ul>
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Backpropagation Made Simple: Learning with One Input</h1>
+            <p><em>Exploring how a machine learning model learns from data using a simple example.</em></p>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Introduction to Backpropagation</h2>
+            <p>Today my objective is to take you on a journey through backpropagation, the key process that powers learning in neural networks. Imagine you’re teaching a robot to guess whether a picture shows a cat or a dog. You’d show it examples, tell it when it’s wrong, and help it tweak its guesses until it gets better. Backpropagation does exactly that for neural networks—it’s how they adjust their internal knobs (called weights and biases) to make better predictions over time.</p>
+            <p>In this blog post, we’re going to build this understanding from the ground up. We’ll use a tiny neural network as our sandbox—one input and one output—so we can focus on the core ideas without getting lost in complexity. By the end, you’ll see how every piece fits together, from making a prediction to fixing mistakes, all with clear steps and a bit of math to light the way.</p>
+        </section>
+
+ 
+
+        <section id="model">
+            <h2>2. Our Simple Model</h2>
+            <p>Let’s keep things easy and use a model with just one input(only one input feature), called \( x \). The model guesses an output, \( f(x) \), using a special function called the sigmoid function, often written as \( \sigma \). Here’s what it looks like:</p>
+            <p>\[ f(x) = \sigma(w \cdot x + b) = \frac{1}{1 + e^{-(w \cdot x + b)}} \]</p>
+            <p>In this equation, \( w \) is the weight (like how much the input matters), and \( b \) is the bias (a little tweak to adjust the output). The sigmoid function squashes any number into a range between 0 and 1, which is great for things like probabilities. For example, if \( w \cdot x + b \) is a big positive number, \( f(x) \) gets close to 1; if it’s a big negative number, it’s close to 0.</p>
+        </section>
+
+<section id="objective">
+            <h2>3. Training Objective</h2>
+            <p>We have some training data—pairs of inputs and outputs, like \( (x_i, y_i) \) for \( i = 1 \) to \( N \). For this blog, we’ll use two pairs: \( (1.0, 0.3) \) and \( (3.0, 0.8) \). Our goal is to find the best \( w \) and \( b \) so that \( f(1.0) \) is close to 0.3 and \( f(3.0) \) is close to 0.8.</p>
+            <p>To measure how good our model is, we use a loss function, \( L(w, b) \), which tells us the error between our predictions and the real answers:</p>
+            <p>\[ L(w, b) = \frac{1}{2} \sum_{i=1}^{N} (y_i - f(x_i))^2 \]</p>
+            <p>For our two points, this becomes:</p>
+            <p>\[ L(w, b) = \frac{1}{2} \left[ (0.3 - f(1.0))^2 + (0.8 - f(3.0))^2 \right] \]</p>
+            <p>We want \( L(w, b) \) to be as small as possible—ideally 0—meaning our predictions match the targets perfectly.</p>
+        </section>
+
+        <section id="guesswork">
+            <h2>4. Trying Guesswork</h2>
+            <p>Can we just guess \( w \) and \( b \) until we get it right? Let’s try a few values and see how the loss looks:</p>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>\( w \)</th>
+                        <th>\( b \)</th>
+                        <th>\( L(w, b) \)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0.50</td>
+                        <td>0.00</td>
+                        <td>0.0522</td>
+                    </tr>
+                    <tr>
+                        <td>-0.10</td>
+                        <td>0.00</td>
+                        <td>0.1070</td>
+                    </tr>
+                    <tr>
+                        <td>0.94</td>
+                        <td>-0.94</td>
+                        <td>0.0135</td>
+                    </tr>
+                    <tr>
+                        <td>1.42</td>
+                        <td>-1.73</td>
+                        <td>0.0012</td>
+                    </tr>
+                    <tr>
+                        <td>1.65</td>
+                        <td>-2.08</td>
+                        <td>0.0002</td>
+                    </tr>
+                    <tr>
+                        <td>1.12</td>
+                        <td>-1.96</td>
+                        <td>0.0000</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>With \( w = 0.5 \) and \( b = 0 \), the loss is 0.0522—not great. But look at \( w = 1.12 \) and \( b = -1.96 \): the loss is 0! That’s perfect. Guessing worked here because we only have two points and two parameters, but with more data or a bigger model, guessing becomes impossible. We need a smarter way.</p>
+        </section>
+
+
+
+<section id="gradient-descent">
+    <h2>6. Gradient Descent</h2>
+    <p>Imagine you’re lost on a foggy hill and want to reach the valley below. You can’t see far, but you can feel the slope beneath your feet. By stepping in the direction that feels most downhill, you gradually descend. In machine learning, this hill is our loss function \( L(w,b) \), a surface defined over the parameters \( w \) (weight) and \( b \) (bias). The valley is the point where the loss is minimized—our goal. Gradient descent is the algorithm that guides us there systematically.</p>
+
+    <p>The gradient of the loss, denoted \( \nabla L(w,b) = \left( \frac{\partial L}{\partial w}, \frac{\partial L}{\partial b} \right) \), is a vector that points in the direction where the loss increases most steeply. To reduce the loss, we move in the opposite direction, updating our parameters as follows:</p>
+
+    <p class="center">\[ w_{t+1} = w_t - \eta \frac{\partial L}{\partial w}, \quad b_{t+1} = b_t - \eta \frac{\partial L}{\partial b} \]</p>
+
+    <p>Here, \( \eta \) (eta) is the learning rate, a small positive number (e.g., 0.1) that controls how big our steps are. But why does this work? Why does the gradient point to the maximum increase, and why does moving against it always reduce the loss? Let’s break it down.</p>
+
+    <h3>Why Does the Gradient Point to the Steepest Increase?</h3>
+    <p>Think of the loss \( L(w,b) \) as a 3D surface, like a bowl or a hilly landscape, where \( w \) and \( b \) are coordinates on a plane, and the height is the loss value. At any point \( (w_t, b_t) \), the gradient \( \nabla L(w_t, b_t) \) tells us two things:</p>
+
+    <ul>
+        <li><strong>Direction:</strong> It points uphill, toward where the loss grows fastest.</li>
+        <li><strong>Magnitude:</strong> Its length indicates how steep that increase is.</li>
+    </ul>
+
+    <p>This comes from calculus. The partial derivatives \( \frac{\partial L}{\partial w} \) and \( \frac{\partial L}{\partial b} \) measure how sensitive the loss is to tiny changes in \( w \) and \( b \). If \( \frac{\partial L}{\partial w} > 0 \), increasing \( w \) increases the loss, so we should decrease \( w \) to go downhill. If it’s negative, we increase \( w \). The gradient combines these into a single vector, giving the net direction of steepest ascent.</p>
+
+            <div id="visualization-container">
+                <div id="gui"></div>
+            </div>
+
+Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\). 
+        The path of the red dot shows the parameters \((w, b)\) iteratively updating and moving toward the global minimum at the origin.
+
+    <h3>Why Move in the Opposite Direction?</h3>
+    <p>Since the gradient points uphill, moving against it—i.e., in the direction \( -\nabla L(w,b) \)—takes us downhill, reducing the loss. The update rule subtracts the gradient (scaled by \( \eta \)), which adjusts \( w \) and \( b \) to lower \( L \). But does this always reduce the loss? And why does the derivative indicate a minimum when it could also point to a maximum?</p>
+
+    <p>The key lies in the local behavior of the function and the size of our steps. The gradient tells us the slope right where we are. By taking small steps opposite to it, we’re following the local downhill path. However, the derivative alone doesn’t distinguish between minima and maxima—both have a gradient of zero. Gradient descent seeks a local minimum, and whether it finds the global minimum depends on the shape of \( L(w,b) \) (e.g., convex functions guarantee a single minimum).</p>
+
+<div class="center-figure">
+    <img src="assets/backpropagation/gradient_direction.png" alt="Gradient Descent vs Ascent">
+    <figcaption>
+        Figure 1. Comparison of Gradient Directions for a Minimum vs. Maximum Function. 
+        The left subplot shows \( L(w) = w^2 \), a convex function with a minimum at \( w = 0 \). 
+        Red arrows indicate the direction of gradient descent (−∇L), which moves toward the minimum. 
+        The right subplot shows \( L(w) = -w^2 \), a concave function with a maximum at \( w = 0 \). 
+        Though the gradient ∇L still points toward zero, this corresponds to ascent — not suitable for loss minimization. 
+        This highlights that in optimization, we seek minima using descent directions.
+    </figcaption>
+</div>
+
+
+    <h3>Mathematical Insight: The Taylor Series Explanation</h3>
+    <p>To understand why moving opposite the gradient reduces the loss, let’s use the Taylor series, which approximates how the loss changes when we move a small step. Define our parameters as \( \theta = (w, b) \), and suppose we move by a vector \( \Delta\theta = u \) scaled by \( \eta \). The new loss is:</p>
+
+    <p class="center">\[ L(\theta + \eta u) = L(\theta) + \eta \cdot u^T \nabla L(\theta) + \frac{\eta^2}{2!} \cdot u^T \nabla^2 L(\theta) u + \text{higher-order terms} \]</p>
+
+    <p>Since \( \eta \) is small, the higher-order terms (involving \( \eta^2, \eta^3, \dots \)) are tiny, so we approximate:</p>
+
+    <p class="center">\[ L(\theta + \eta u) \approx L(\theta) + \eta \cdot u^T \nabla L(\theta) \]</p>
+
+    <p>We want the move to reduce the loss, i.e., \( L(\theta + \eta u) < L(\theta) \), which means:</p>
+
+    <p class="center">\[ \eta \cdot u^T \nabla L(\theta) < 0 \]</p>
+
+    <p>Since \( \eta > 0 \), this requires:</p>
+
+    <p class="center">\[ u^T \nabla L(\theta) < 0 \]</p>
+
+    <p>Here, \( u^T \nabla L(\theta) \) is the dot product between our movement direction \( u \) and the gradient. The dot product depends on the angle \( \beta \) between \( u \) and \( \nabla L(\theta) \):</p>
+
+    <p class="center">\[ u^T \nabla L(\theta) = \|u\| \cdot \|\nabla L(\theta)\| \cdot \cos(\beta) \]</p>
+
+    <p>
+        If \( \cos(\beta) > 0 \) (angle < 90°), the dot product is positive, and the loss increases. <br>
+        If \( \cos(\beta) < 0 \) (90° < \( \beta \) < 270°), the dot product is negative, and the loss decreases.
+    </p>
+
+    <p>To maximize the decrease, we want the dot product as negative as possible. The minimum value occurs when \( \cos(\beta) = -1 \), or \( \beta = 180^\circ \), meaning \( u \) is directly opposite the gradient. Thus, set:</p>
+
+    <p class="center">\[ u = -\nabla L(\theta) \]</p>
+
+    <p>The update becomes \( \theta + \eta u = \theta - \eta \nabla L(\theta) \), matching our rule:</p>
+
+    <p class="center">\[ w_{t+1} = w_t - \eta \frac{\partial L}{\partial w}, \quad b_{t+1} = b_t - \eta \frac{\partial L}{\partial b} \]</p>
+
+
+
+    <h3>Does It Always Reduce the Loss?</h3>
+    <p>For small \( \eta \), the Taylor approximation holds, and the loss decreases locally. But if \( \eta \) is too large, we might overshoot the minimum, as higher-order terms become significant. Imagine jumping across the valley instead of stepping down—you could land higher up! Choosing \( \eta \) is a balancing act: too small, and progress is slow; too large, and we oscillate or diverge.</p>
+
+    <p>Also, gradient descent finds local minima. If \( L(w,b) \) has multiple valleys (non-convex), we might settle in a suboptimal one. For linear regression, where</p>
+
+    <p class="center">\[ L = \frac{1}{n} \sum \left(y_i - (wx_i + b)\right)^2 \]</p>
+
+    <p>is convex, we’re guaranteed the global minimum.</p>
+</section>
+
+
+<section id="gradients">
+    <h2>6. Computing Gradients</h2>
+    <p>To use gradient descent, we need those gradients. Let’s figure them out step by step.</p>
+    
+    <h3>For Mean Squared Error (MSE) Loss</h3>
+    <p>We’ll start with the mean squared error loss, as it’s intuitive and aligns with the loss function introduced earlier. Then, we’ll explore the cross-entropy loss, which is often preferred for classification tasks like logistic regression.</p>
+    
+    <h4>For \( w \):</h4>
+    <p>Start with the loss for one point:</p>
+    <p>\[ L(w, b) = \frac{1}{2} (f(x) - y)^2 \]</p>
+    <p>Take the derivative with respect to \( w \):</p>
+    <p>\[ \frac{\partial L}{\partial w} = (f(x) - y) \cdot \frac{\partial f(x)}{\partial w} \]</p>
+    <p>Now, since \( f(x) = \frac{1}{1 + e^{-(w \cdot x + b)}} \), let’s call \( z = w \cdot x + b \). So, \( f(x) = \sigma(z) \), and the derivative of the sigmoid is:</p>
+    <p>\[ \frac{\partial f}{\partial z} = \sigma(z) \cdot (1 - \sigma(z)) = f(x) \cdot (1 - f(x)) \]</p>
+    <p>Then, \( \frac{\partial z}{\partial w} = x \), so:</p>
+    <p>\[ \frac{\partial f}{\partial w} = \frac{\partial f}{\partial z} \cdot \frac{\partial z}{\partial w} = f(x) \cdot (1 - f(x)) \cdot x \]</p>
+    <p>Put it together:</p>
+    <p>\[ \frac{\partial L}{\partial w} = (f(x) - y) \cdot f(x) \cdot (1 - f(x)) \cdot x \]</p>
+    
+    <h4>For \( b \):</h4>
+    <p>Similarly:</p>
+    <p>\[ \frac{\partial L}{\partial b} = (f(x) - y) \cdot \frac{\partial f(x)}{\partial b} \]</p>
+    <p>And \( \frac{\partial z}{\partial b} = 1 \), so:</p>
+    <p>\[ \frac{\partial f}{\partial b} = f(x) \cdot (1 - f(x)) \cdot 1 \]</p>
+    <p>\[ \frac{\partial L}{\partial b} = (f(x) - y) \cdot f(x) \cdot (1 - f(x)) \]</p>
+    
+    <p>For our two points, we sum the gradients:</p>
+    <p>\[ \frac{\partial L}{\partial w} = \sum_{i=1}^{2} (f(x_i) - y_i) \cdot f(x_i) \cdot (1 - f(x_i)) \cdot x_i \]</p>
+    <p>\[ \frac{\partial L}{\partial b} = \sum_{i=1}^{2} (f(x_i) - y_i) \cdot f(x_i) \cdot (1 - f(x_i)) \]</p>
+    
+    
+    <h3>Gradients for Cross-Entropy Loss</h3>
+    <p>Let’s compute the gradients for the cross-entropy loss to see how they differ from the MSE gradients.</p>
+    
+    <h4>For \( w \):</h4>
+    <p>Start with the loss for one point:</p>
+    <p>\[ L(w, b) = - [ y \log(f(x)) + (1 - y) \log(1 - f(x)) ] \]</p>
+    <p>Take the derivative with respect to \( w \):</p>
+    <p>\[ \frac{\partial L}{\partial w} = - \left[ y \cdot \frac{1}{f(x)} \cdot \frac{\partial f(x)}{\partial w} + (1 - y) \cdot \frac{1}{1 - f(x)} \cdot \left( -\frac{\partial f(x)}{\partial w} \right) \right] \]</p>
+    <p>Simplify:</p>
+    <p>\[ \frac{\partial L}{\partial w} = - \left[ \frac{y}{f(x)} - \frac{1 - y}{1 - f(x)} \right] \cdot \frac{\partial f(x)}{\partial w} \]</p>
+    <p>Recall that \( f(x) = \sigma(z) \), where \( z = w \cdot x + b \), and:</p>
+    <p>\[ \frac{\partial f}{\partial w} = \frac{\partial f}{\partial z} \cdot \frac{\partial z}{\partial w} = f(x) \cdot (1 - f(x)) \cdot x \]</p>
+    <p>Now, let’s simplify the term in brackets:</p>
+    <p>\[ \frac{y}{f(x)} - \frac{1 - y}{1 - f(x)} \]</p>
+    <p>Combine over a common denominator:</p>
+    <p>\[ \frac{y (1 - f(x)) - (1 - y) f(x)}{f(x) (1 - f(x))} = \frac{y - y f(x) - f(x) + y f(x)}{f(x) (1 - f(x))} = \frac{y - f(x)}{f(x) (1 - f(x))} \]</p>
+    <p>So:</p>
+    <p>\[ \frac{\partial L}{\partial w} = - \frac{y - f(x)}{f(x) (1 - f(x))} \cdot f(x) \cdot (1 - f(x)) \cdot x \]</p>
+    <p>The \( f(x) (1 - f(x)) \) terms cancel out:</p>
+    <p>\[ \frac{\partial L}{\partial w} = - (y - f(x)) \cdot x = (f(x) - y) \cdot x \]</p>
+    <p>Surprisingly, this is much simpler than the MSE gradient!</p>
+    
+    <h4>For \( b \):</h4>
+    <p>Similarly:</p>
+    <p>\[ \frac{\partial L}{\partial b} = - \left[ \frac{y}{f(x)} - \frac{1 - y}{1 - f(x)} \right] \cdot \frac{\partial f(x)}{\partial b} \]</p>
+    <p>Since \( \frac{\partial z}{\partial b} = 1 \):</p>
+    <p>\[ \frac{\partial f}{\partial b} = f(x) \cdot (1 - f(x)) \cdot 1 \]</p>
+    <p>Using the same simplification as above:</p>
+    <p>\[ \frac{\partial L}{\partial b} = - \frac{y - f(x)}{f(x) (1 - f(x))} \cdot f(x) \cdot (1 - f(x)) \]</p>
+    <p>\[ \frac{\partial L}{\partial b} = - (y - f(x)) = f(x) - y \]</p>
+    
+    <p>For our two points, sum the gradients:</p>
+    <p>\[ \frac{\partial L}{\partial w} = \sum_{i=1}^{2} (f(x_i) - y_i) \cdot x_i \]</p>
+    <p>\[ \frac{\partial L}{\partial b} = \sum_{i=1}^{2} (f(x_i) - y_i) \]</p>
+    
+    <h3>Why Cross-Entropy is Preferred</h3>
+    <p>Notice how the cross-entropy gradients are simpler than those for MSE—no \( f(x) \cdot (1 - f(x)) \) term! The cancellation of terms makes gradient descent updates more stable and often faster to converge, especially for classification tasks.</p>
+    
+    <p>This process—using the chain rule to find gradients—is the heart of backpropagation! Whether using MSE or cross-entropy, the gradients guide our model to better weights and biases, minimizing the loss and improving predictions.</p>
+</section>
+
+<div class="center-figure">
+    <img src="assets/backpropagation/gradient_descent.gif" alt="Gradient Descent Animation">
+    <figcaption>
+        Figure 2: Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\). 
+        The path of the red dot shows the parameters \((w, b)\) iteratively updating and moving toward the global minimum at the origin.
+    </figcaption>
+</div>
+
+        <section id="example">
+            <h2>7. Step-by-Step Example</h2>
+            <p>Let’s try gradient descent with our data: \( (0.5, 0.2) \) and \( (2.5, 0.9) \). Start with \( w = 0 \), \( b = 0 \), and \( \eta = 0.1 \).</p>
+            <h3>Step 1: Compute Predictions</h3>
+            <p>\( f(0.5) = \sigma(0 \cdot 0.5 + 0) = \sigma(0) = 0.5 \)</p>
+            <p>\( f(2.5) = \sigma(0 \cdot 2.5 + 0) = \sigma(0) = 0.5 \)</p>
+            <h3>Step 2: Compute Gradients</h3>
+            <p>For \( w \):</p>
+            <p>\( (0.5 - 0.2) \cdot 0.5 \cdot (1 - 0.5) \cdot 0.5 = 0.3 \cdot 0.5 \cdot 0.5 \cdot 0.5 = 0.0375 \)</p>
+            <p>\( (0.5 - 0.9) \cdot 0.5 \cdot (1 - 0.5) \cdot 2.5 = -0.4 \cdot 0.5 \cdot 0.5 \cdot 2.5 = -0.25 \)</p>
+            <p>\[ \frac{\partial L}{\partial w} = 0.0375 - 0.25 = -0.2125 \]</p>
+            <p>For \( b \):</p>
+            <p>\( (0.5 - 0.2) \cdot 0.5 \cdot (1 - 0.5) = 0.3 \cdot 0.25 = 0.075 \)</p>
+            <p>\( (0.5 - 0.9) \cdot 0.5 \cdot (1 - 0.5) = -0.4 \cdot 0.25 = -0.1 \)</p>
+            <p>\[ \frac{\partial L}{\partial b} = 0.075 - 0.1 = -0.025 \]</p>
+            <h3>Step 3: Update Parameters</h3>
+            <p>\[ w = 0 - 0.1 \cdot (-0.2125) = 0.02125 \]</p>
+            <p>\[ b = 0 - 0.1 \cdot (-0.025) = 0.0025 \]</p>
+            <p>After one step, our new \( w \) and \( b \) are slightly better. If we keep going, they’ll get closer to \( w = 1.78 \) and \( b = -2.27 \), where the loss is 0.</p>
+        </section>
+
+<section id="feedforward">
+    <h2>7. Feedforward Neural Networks</h2>
+    <p>Before we dive into backpropagation, let’s understand how a neural network makes predictions. This is called the feedforward process. Imagine a neural network as a series of layers where information flows forward from the input to the output, like water through a pipeline.</p>
+    <p>Our data consists of pairs \( \{x_i, y_i\} \) for \( i = 1 \) to \( N \), where \( x_i \) is the input and \( y_i \) is the target output. The model’s job is to predict \( \hat{y}_i = f(x_i) \). In our example, we’re using a neural network with three layers: an input layer, two hidden layers, and an output layer. Here’s how it looks mathematically:</p>
+    <p>\[ \hat{y}_i = f(x_i) = O(W_3 g(W_2 g(W_1 x_i + b_1) + b_2) + b_3) \]</p>
+    <p>Let’s break this down step by step:</p>
+    <ul>
+        <li><strong>Input Layer:</strong> We start with \( x_i \), the input data.</li>
+        <li><strong>First Hidden Layer:</strong> The input is multiplied by weights \( W_1 \) and added to biases \( b_1 \), then passed through an activation function \( g \), like sigmoid or ReLU. So, \( h_1 = g(W_1 x_i + b_1) \).</li>
+        <li><strong>Second Hidden Layer:</strong> The output \( h_1 \) goes through weights \( W_2 \) and biases \( b_2 \), then the activation function again: \( h_2 = g(W_2 h_1 + b_2) \).</li>
+        <li><strong>Output Layer:</strong> Finally, \( h_2 \) is transformed by weights \( W_3 \), biases \( b_3 \), and an output activation function \( O \), giving us \( \hat{y}_i = O(W_3 h_2 + b_3) \).</li>
+    </ul>
+    <p>The parameters of this model are \( \theta = \{W_1, W_2, W_3, b_1, b_2, b_3\} \). These are the “knobs” we’ll tweak to make better predictions. For classification (e.g., picking one of \( k \) classes), we often use the softmax function for \( O \), which turns the output into probabilities. For regression (e.g., predicting numbers like movie ratings), \( O \) might be a linear function.</p>
+    <p>Think of the feedforward process like passing a note through a chain of friends, each adding their own twist before handing it to the next person, until the final message comes out!</p>
+</section>
+
+<section id="loss-functions-backprop">
+    <h2>8. Choosing the Loss Function</h2>
+    <p>Now that we can make predictions, we need a way to measure how good or bad they are. That’s where the loss function \( L(\theta) \) comes in—it tells us the error between our prediction \( \hat{y}_i \) and the true value \( y_i \). The choice depends on what we’re trying to do.</p>
+    <h3>Regression Example (e.g., Movie Ratings)</h3>
+    <p>Suppose we’re predicting movie ratings, where \( y_i \) is a vector of numbers (say, three ratings in \( \mathbb{R}^3 \)). We want \( \hat{y}_i \) to be close to \( y_i \). A common choice is the squared error loss:</p>
+    <p>\[ L(\theta) = \frac{1}{N} \sum_{i=1}^{N} \sum_{j=1}^{3} (\hat{y}_{ij} - y_{ij})^2 \]</p>
+    <p>This adds up the squared differences between each predicted rating and the actual rating. For this case, the output function \( O \) should be linear (e.g., \( \hat{y}_i = W_3 h_2 + b_3 \)), because ratings can be any real number, not just 0 to 1 like a sigmoid would give us.</p>
+    <h3>Classification Example (e.g., Image Classes)</h3>
+    <p>Now, suppose we’re classifying an image into one of \( k \) classes (e.g., cat, dog, bird). Here, \( y_i \) is a probability distribution (1 for the true class, 0 elsewhere), and \( \hat{y}_i \) should be too. We use the softmax function for \( O \):</p>
+    <p>\[ \hat{y}_{ij} = O(a_{3})_j = \frac{e^{a_{3,j}}}{\sum_{m=1}^{k} e^{a_{3,m}}}, \quad \text{where} \quad a_3 = W_3 h_2 + b_3 \]</p>
+    <p>This ensures \( \hat{y}_i \) sums to 1, like a probability. The best loss function here is cross-entropy:</p>
+    <p>\[ L(\theta) = -\sum_{c=1}^{k} y_{c} \log \hat{y}_{c} \]</p>
+    <p>Since \( y_c = 1 \) only for the true class \( \ell \) and 0 otherwise, this simplifies to:</p>
+    <p>\[ L(\theta) = -\log \hat{y}_\ell \]</p>
+    <p>Our goal is to minimize this, which means making \( \hat{y}_\ell \) (the predicted probability of the true class) as close to 1 as possible. For the rest of this post, we’ll focus on classification with softmax and cross-entropy, as it’s super common and ties nicely into backpropagation.</p>
+</section>
+
+
+<section id="backpropagation-algorithm">
+    <h2>9. Backpropagation Algorithm</h2>
+    <p>Here’s where the magic happens! Backpropagation is how we figure out how to adjust all those parameters \( \theta = \{W_1, W_2, W_3, b_1, b_2, b_3\} \) to reduce the loss. The idea is simple: we start at the output, see how wrong we are, and work backward through the network, sharing the blame with each layer.</p>
+    <p>Imagine you baked a cake, and it tastes bad. You ask, “Was it the frosting? The batter? The oven?” Backpropagation does this by using the chain rule from calculus to pass the error backward, layer by layer. For our three-layer network, we need gradients like \( \nabla_{W_1} L \), \( \nabla_{b_1} L \), and so on, for all weights and biases.</p>
+    <p>Intuitively, we tell the output layer, “Hey, your prediction \( \hat{y} \) isn’t right!” It replies, “I did my best with what the hidden layer gave me via \( W_3 \) and \( b_3 \).” So, we ask the second hidden layer \( h_2 \), “Why didn’t you help better?” It says, “Blame \( W_2 \) and \( b_2 \), and what I got from \( h_1 \).” We keep going back until we’ve talked to everyone. This backward pass computes how much each parameter contributed to the error.</p>
+    <p>Let us focus on one specific weight, say \( W_{112} \) (the weight connecting the second input to the first unit in the first hidden layer). To learn this weight using Stochastic Gradient Descent (SGD), we need a formula for \( \frac{\partial L}{\partial W_{112}} \). We’ll see how to calculate this using the chain rule.</p>
+    <p>For a weight like \( W_{111} \) (the first element of \( W_1 \)), the gradient is:</p>
+    <p>\[ \frac{\partial L}{\partial W_{111}} = \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial a_3} \cdot \frac{\partial a_3}{\partial h_2} \cdot \frac{\partial h_2}{\partial a_2} \cdot \frac{\partial a_2}{\partial h_1} \cdot \frac{\partial h_1}{\partial a_1} \cdot \frac{\partial a_1}{\partial W_{111}} \]</p>
+    <p>This chain rule links the loss all the way back to \( W_{111} \) through the layers. For \( W_{112} \), it’s similar—we just adjust the indices. But let’s make it intuitive first.</p>
+    <p>We get a certain loss at the output and try to figure out who’s responsible. So, we talk to the output layer and say, “Hey! You’re not producing the desired output, better take responsibility.” The output layer says, “Well, I take responsibility for my part, but please understand that I’m only as good as the hidden layer and weights below me.” After all, the output is computed as \( \hat{y} = O(W_3 h_2 + b_3) \).</p>
+    <p>So, we talk to \( W_3 \), \( b_3 \), and \( h_2 \) and ask, “What’s wrong with you?” \( W_3 \) and \( b_3 \) take full responsibility, but \( h_2 \) says, “Well, please understand that I’m only as good as the pre-activation layer \( a_2 \).” The pre-activation layer \( a_2 = W_2 h_1 + b_2 \) in turn says, “I’m only as good as the hidden layer \( h_1 \) and weights below me.”</p>
+    <p>We continue this way and realize the responsibility lies with all the weights and biases—all the parameters of the model. But instead of talking to them directly, it’s easier to talk to them through the hidden layers and output layers, which is exactly what the chain rule allows us to do.</p>
+    <p>For \( W_{112} \), we could write:</p>
+    <p>\[ \frac{\partial L}{\partial W_{112}} = \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial a_3} \cdot \frac{\partial a_3}{\partial h_2} \cdot \frac{\partial h_2}{\partial a_2} \cdot \frac{\partial a_2}{\partial h_1} \cdot \frac{\partial h_1}{\partial a_1} \cdot \frac{\partial a_1}{\partial W_{112}} \]</p>
+    <p>This can be compressed as:</p>
+    <p>\[ \frac{\partial L}{\partial W_{112}} = \frac{\partial L}{\partial h_1} \cdot \frac{\partial h_1}{\partial W_{112}} \]</p>
+    <p>We’ll compute these pieces step by step, starting with the output units, then hidden units, and finally weights and biases.</p>
+</section>
+
+<section id="computing-gradients-backprop">
+    <h2>10. Computing Gradients with Backpropagation</h2>
+    <p>Let’s calculate the gradients step by step for our network with cross-entropy loss and softmax output. Our focus is on the cross-entropy loss and softmax output. We’ll start with the gradient with respect to the output units.</p>
+    <h3>Gradient w.r.t. Output Units</h3>
+    <p>First, let’s consider the partial derivative with respect to the \( i \)-th output. The loss is defined as:</p>
+    <p>\[ L(\theta) = -\log \hat{y}_\ell \]</p>
+    <p>where \( \ell \) is the true class label, and \( \hat{y}_\ell \) is the predicted probability for that class from the softmax output:</p>
+    <p>\[ \hat{y}_\ell = \frac{\exp(a_{L,\ell})}{\sum_{i'} \exp(a_{L,i'})} \]</p>
+    <p>We need \( \frac{\partial L}{\partial \hat{y}_i} \). Compute it as:</p>
+    <p>\[ \frac{\partial L}{\partial \hat{y}_i} = \frac{\partial}{\partial \hat{y}_i} (-\log \hat{y}_\ell) \]</p>
+    <p>Since the loss only depends on \( \hat{y}_\ell \), if \( i = \ell \):</p>
+    <p>\[ \frac{\partial L}{\partial \hat{y}_\ell} = -\frac{1}{\hat{y}_\ell} \]</p>
+    <p>And if \( i \neq \ell \), it’s 0. More compactly:</p>
+    <p>\[ \frac{\partial L}{\partial \hat{y}_i} = -\frac{1(i = \ell)}{\hat{y}_\ell} \]</p>
+    <p>The gradient with respect to the vector \( \hat{y} \) is:</p>
+    <p>\[ \nabla_{\hat{y}} L(\theta) = \begin{bmatrix} \frac{\partial L}{\partial \hat{y}_1} \\ \vdots \\ \frac{\partial L}{\partial \hat{y}_k} \end{bmatrix} = -\frac{1}{\hat{y}_\ell} \begin{bmatrix} 1_{\ell=1} \\ 1_{\ell=2} \\ \vdots \\ 1_{\ell=k} \end{bmatrix} = -\frac{1}{\hat{y}_\ell} e_\ell \]</p>
+    <p>where \( e_\ell \) is a k-dimensional vector with 1 at the \( \ell \)-th position and 0 elsewhere.</p>
+    <p>What we’re actually interested in is \( \frac{\partial L}{\partial a_{L,i}} \), the gradient with respect to the pre-activation \( a_L \). This is:</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,i}} = \frac{\partial (-\log \hat{y}_\ell)}{\partial a_{L,i}} = \frac{\partial (-\log \hat{y}_\ell)}{\partial \hat{y}_\ell} \cdot \frac{\partial \hat{y}_\ell}{\partial a_{L,i}} \]</p>
+    <p>Does \( \hat{y}_\ell \) depend on \( a_{L,i} \)? Yes, it does, because of the softmax:</p>
+    <p>\[ \hat{y}_\ell = \frac{\exp(a_{L,\ell})}{\sum_{i'} \exp(a_{L,i'})} \]</p>
+    <p>Now, compute \( \frac{\partial \hat{y}_\ell}{\partial a_{L,i}} \). For softmax, if \( \ell = i \):</p>
+    <p>\[ \frac{\partial \hat{y}_\ell}{\partial a_{L,\ell}} = \hat{y}_\ell (1 - \hat{y}_\ell) \]</p>
+    <p>If \( \ell \neq i \):</p>
+    <p>\[ \frac{\partial \hat{y}_\ell}{\partial a_{L,i}} = -\hat{y}_\ell \hat{y}_i \]</p>
+    <p>Using the chain rule:</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,i}} = \sum_j \frac{\partial L}{\partial \hat{y}_j} \cdot \frac{\partial \hat{y}_j}{\partial a_{L,i}} \]</p>
+    <p>Since \( \frac{\partial L}{\partial \hat{y}_j} = 0 \) unless \( j = \ell \), we evaluate:</p>
+    <p>For \( i = \ell \):</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,\ell}} = \frac{\partial L}{\partial \hat{y}_\ell} \cdot \frac{\partial \hat{y}_\ell}{\partial a_{L,\ell}} = -\frac{1}{\hat{y}_\ell} \cdot \hat{y}_\ell (1 - \hat{y}_\ell) = -(1 - \hat{y}_\ell) \]</p>
+    <p>For \( i \neq \ell \):</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,i}} = \frac{\partial L}{\partial \hat{y}_\ell} \cdot \frac{\partial \hat{y}_\ell}{\partial a_{L,i}} = -\frac{1}{\hat{y}_\ell} \cdot (-\hat{y}_\ell \hat{y}_i) = \hat{y}_i \]</p>
+    <p>So, in general:</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,i}} = -(1(i = \ell) - \hat{y}_i) \]</p>
+    <p>This matches the elegant result:</p>
+    <p>\[ \frac{\partial L}{\partial a_{L,i}} = \hat{y}_i - y_i \]</p>
+    <p>where \( y_i = 1 \) if \( i = \ell \) and 0 otherwise. The full gradient vector is:</p>
+    <p>\[ \nabla_{a_L} L = \hat{y} - y \]</p>
+    <p>where \( y \) is the one-hot encoded true label vector (e.g., \( y = [0, 0, 1, 0] \) if \( \ell = 3 \)).</p>
+
+   <p>Alright, let’s keep the momentum going and dive into the heart of backpropagation! We’ve already got a taste of how the network makes predictions and how we measure errors with the loss function. Now, we need to figure out how to tweak every little piece—weights and biases—to make our predictions better. That’s where gradients come in, and we’re going to compute them step by step, starting from the output and working our way back. Here’s what we’re after:</p>
+    
+    <ul>
+        <li><strong>Gradient with respect to the output units</strong>: How the loss changes with the final predictions.</li>
+        <li><strong>Gradient with respect to the hidden units</strong>: How the loss ripples back through the hidden layers.</li>
+        <li><strong>Gradient with respect to the weights and biases</strong>: How each parameter needs to shift to reduce the error.</li>
+    </ul>
+
+    <p>Since we’re focusing on cross-entropy loss with a softmax output (super common for classification), let’s roll up our sleeves and compute these gradients in a way that’s easy to follow—like chatting through it with a friend!</p>
+
+    <h3>Gradient with Respect to Output Units</h3>
+    <p>We’ve already tackled this one a bit, but let’s make it crystal clear. Our loss is \( L(\theta) = -\log \hat{y}_\ell \), where \( \hat{y}_\ell \) is the predicted probability for the true class \( \ell \) from the softmax. The pre-activation \( a_L \) feeds into the softmax to give us \( \hat{y} \). We need the gradient of the loss with respect to \( a_L \), written as \( \nabla_{a_L} L \).</p>
+    <p>Good news: for cross-entropy with softmax, this simplifies nicely. After applying the chain rule (which we’ll trust from earlier), we get:</p>
+    <p>\[ \nabla_{a_L} L = \hat{y} - y \]</p>
+    <p>Here, \( \hat{y} \) is our predicted probability vector (e.g., [0.2, 0.7, 0.1]), and \( y \) is the true label as a one-hot vector (e.g., [0, 1, 0] if class 2 is correct). This tells us how far off each output is—positive if we overshot, negative if we undershot. Simple, right?</p>
+
+    <h3>Gradient with Respect to Hidden Units</h3>
+    <p>Now, let’s pass the blame backward to the hidden layers. Say we’re at layer \( i \), with activations \( h_i \) and pre-activations \( a_i = W_i h_{i-1} + b_i \). The next layer’s pre-activation is \( a_{i+1} = W_{i+1} h_i + b_{i+1} \). We’ve got \( \nabla_{a_{i+1}} L \) from the layer ahead, and we need to figure out \( \nabla_{h_i} L \) and then \( \nabla_{a_i} L \).</p>
+    <p>First, how does the loss change with \( h_i \)? Since \( a_{i+1} \) depends on \( h_i \), we use the chain rule. For a single unit \( h_{i,j} \):</p>
+    <p>\[ \frac{\partial L}{\partial h_{i,j}} = \sum_m \frac{\partial L}{\partial a_{i+1,m}} \cdot \frac{\partial a_{i+1,m}}{\partial h_{i,j}} \]</p>
+    <p>Since \( a_{i+1,m} = \sum_j W_{i+1,m,j} h_{i,j} + b_{i+1,m} \), we have \( \frac{\partial a_{i+1,m}}{\partial h_{i,j}} = W_{i+1,m,j} \). So:</p>
+    <p>\[ \frac{\partial L}{\partial h_{i,j}} = \sum_m \frac{\partial L}{\partial a_{i+1,m}} W_{i+1,m,j} \]</p>
+    <p>In vector form, this is a dot product. For the whole layer:</p>
+    <p>\[ \nabla_{h_i} L = W_{i+1}^T \nabla_{a_{i+1}} L \]</p>
+    <p>Think of \( W_{i+1}^T \) as flipping the weights to pass the error back. Now, since \( h_i = g(a_i) \) (where \( g \) is our activation function), we need the gradient with respect to \( a_i \):</p>
+    <p>\[ \frac{\partial L}{\partial a_{i,j}} = \frac{\partial L}{\partial h_{i,j}} \cdot \frac{\partial h_{i,j}}{\partial a_{i,j}} = \frac{\partial L}{\partial h_{i,j}} \cdot g'(a_{i,j}) \]</p>
+    <p>So, the full gradient is:</p>
+    <p>\[ \nabla_{a_i} L = \nabla_{h_i} L \odot g'(a_i) \]</p>
+    <p>That \( \odot \) means element-wise multiplication. The derivative \( g'(a_i) \) depends on the activation—like \( g'(z) = g(z)(1 - g(z)) \) for sigmoid. This step adjusts the error based on how sensitive each unit is.</p>
+
+    <h3>Gradient with Respect to Weights and Biases</h3>
+    <p>Finally, let’s talk to the weights and biases directly! For a weight \( W_{i,jk} \) (connecting unit \( k \) in layer \( i-1 \) to unit \( j \) in layer \( i \)), we have \( a_{i,j} = \sum_k W_{i,jk} h_{i-1,k} + b_{i,j} \). The gradient is:</p>
+    <p>\[ \frac{\partial L}{\partial W_{i,jk}} = \frac{\partial L}{\partial a_{i,j}} \cdot \frac{\partial a_{i,j}}{\partial W_{i,jk}} \]</p>
+    <p>Since \( \frac{\partial a_{i,j}}{\partial W_{i,jk}} = h_{i-1,k} \), we get:</p>
+    <p>\[ \frac{\partial L}{\partial W_{i,jk}} = \frac{\partial L}{\partial a_{i,j}} \cdot h_{i-1,k} \]</p>
+    <p>In matrix form, for the whole weight matrix \( W_i \):</p>
+    <p>\[ \nabla_{W_i} L = \nabla_{a_i} L \cdot h_{i-1}^T \]</p>
+    <p>For biases, it’s even simpler. Since \( \frac{\partial a_{i,j}}{\partial b_{i,j}} = 1 \):</p>
+    <p>\[ \frac{\partial L}{\partial b_{i,j}} = \frac{\partial L}{\partial a_{i,j}} \]</p>
+    <p>So:</p>
+    <p>\[ \nabla_{b_i} L = \nabla_{a_i} L \]</p>
+    <p>It’s like each weight’s blame is its error times the input it got, and each bias just takes the error straight. That’s it—we’ve got all the pieces!</p>
+
+    <h3>Putting It Together</h3>
+    <p>Backpropagation is like a relay race in reverse. We start with \( \nabla_{a_L} L = \hat{y} - y \) at the output, then pass it back through each layer:</p>
+    <ul>
+        <li>Compute \( \nabla_{h_i} L = W_{i+1}^T \nabla_{a_{i+1}} L \)</li>
+        <li>Compute \( \nabla_{a_i} L = \nabla_{h_i} L \odot g'(a_i) \)</li>
+        <li>Compute \( \nabla_{W_i} L = \nabla_{a_i} L \cdot h_{i-1}^T \) and \( \nabla_{b_i} L = \nabla_{a_i} L \)</li>
+    </ul>
+    <p>We keep going until we reach the input layer. Then, we nudge each parameter in the opposite direction of its gradient with gradient descent. It’s a team effort—every layer and parameter chips in to fix the prediction!</p>
+</section>
+
+<section id="activation-derivatives">
+    <h2>Derivation of Activation Functions</h2>
+    <p>Now, the only thing we need to figure out is how to compute the derivatives of our activation functions, which we’ll call \( g'(z) \). These derivatives are key in backpropagation for tweaking our neural network to learn better. Let’s dive into two popular ones: the logistic (sigmoid) function and the hyperbolic tangent (tanh) function. I’ll break it down step by step so it’s easy to follow!</p>
+
+    <h3>Derivative of the Logistic (Sigmoid) Function</h3>
+    <p>The sigmoid function is defined as:</p>
+    <p>\[ g(z) = \sigma(z) = \frac{1}{1 + e^{-z}} \]</p>
+    <p>We need to find \( g'(z) \). Here’s how it goes:</p>
+    <ol>
+        <li>Start with \( g(z) = \frac{1}{1 + e^{-z}} \). Rewrite it as \( (1 + e^{-z})^{-1} \) so we can use the chain rule.</li>
+        <li>The chain rule for \( (u)^{-1} \) gives us \( -1 \cdot u^{-2} \cdot u' \). Here, \( u = 1 + e^{-z} \), so:
+            <p>\[ g'(z) = (-1) \cdot (1 + e^{-z})^{-2} \cdot \frac{d}{dz}(1 + e^{-z}) \]</p></li>
+        <li>Compute the derivative of the inside: \( \frac{d}{dz}(1 + e^{-z}) = 0 + (-e^{-z}) = -e^{-z} \) (since the derivative of \( e^{-z} \) is \( -e^{-z} \)).</li>
+        <li>Plug it in:
+            <p>\[ g'(z) = (-1) \cdot (1 + e^{-z})^{-2} \cdot (-e^{-z}) = (1 + e^{-z})^{-2} \cdot e^{-z} \]</p></li>
+        <li>Simplify: Rewrite \( (1 + e^{-z})^{-2} \cdot e^{-z} \) as \( \frac{e^{-z}}{(1 + e^{-z})^2} \).</li>
+        <li>Now, let’s make it prettier. Notice \( g(z) = \frac{1}{1 + e^{-z}} \), and:
+            <p>\[ 1 - g(z) = \frac{e^{-z}}{1 + e^{-z}} \]</p></li>
+        <li>So:
+            <p>\[ g'(z) = \frac{e^{-z}}{(1 + e^{-z})^2} = \frac{1}{1 + e^{-z}} \cdot \frac{e^{-z}}{1 + e^{-z}} = g(z) \cdot (1 - g(z)) \]</p></li>
+    </ol>
+    <p>Final result:
+    <p>\[ g'(z) = g(z)(1 - g(z)) \]</p>
+    <p>How cool is that? The derivative uses the function’s own output—super convenient for coding!</p>
+
+    <h3>Derivative of the Hyperbolic Tangent (Tanh) Function</h3>
+    <p>The tanh function is:
+    <p>\[ g(z) = \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}} \]</p>
+    <p>To find \( g'(z) \), we’ll use the quotient rule: for \( \frac{p}{q} \), the derivative is \( \frac{p'q - pq'}{q^2} \). Let \( p = e^z - e^{-z} \) and \( q = e^z + e^{-z} \).</p>
+    <ol>
+        <li>Derivatives first: 
+            <p>\[ p' = \frac{d}{dz}(e^z - e^{-z}) = e^z + e^{-z} \]</p>
+            <p>\[ q' = \frac{d}{dz}(e^z + e^{-z}) = e^z - e^{-z} \]</p></li>
+        <li>Apply the quotient rule:
+            <p>\[ g'(z) = \frac{(e^z + e^{-z})(e^z + e^{-z}) - (e^z - e^{-z})(e^z - e^{-z})}{(e^z + e^{-z})^2} \]</p></li>
+        <li>Simplify the numerator: 
+            <p>\[ (e^z + e^{-z})^2 - (e^z - e^{-z})^2 \]</p>
+            Expand: 
+            <p>\[ (e^z + e^{-z})^2 = e^{2z} + 2 + e^{-2z} \]</p>
+            <p>\[ (e^z - e^{-z})^2 = e^{2z} - 2 + e^{-2z} \]</p>
+            Subtract: 
+            <p>\[ (e^{2z} + 2 + e^{-2z}) - (e^{2z} - 2 + e^{-2z}) = 4 \]</p></li>
+        <li>So:
+            <p>\[ g'(z) = \frac{4}{(e^z + e^{-z})^2} \]</p></li>
+        <li>Relate it to \( g(z) \): 
+            <p>\[ 1 - (g(z))^2 = 1 - \left( \frac{e^z - e^{-z}}{e^z + e^{-z}} \right)^2 = \frac{4}{(e^z + e^{-z})^2} \]</p></li>
+        <li>Thus:
+            <p>\[ g'(z) = 1 - (g(z))^2 \]</p></li>
+    </ol>
+    <p>Another neat result! Like sigmoid, the derivative depends only on \( g(z) \).</p>
+
+    <p>These derivatives are gold in backpropagation—they help us adjust the network efficiently using values we already computed. Try them out in your next model!</p>
+</section>
+
+<section id="conclusion">
+    <h2>8. Conclusion</h2>
+    <p>We started with a single input and saw how a simple neural network makes a guess, checks its mistake, and then learns by adjusting its knobs. That cycle—feedforward, measuring loss, and backpropagation—lets the model learn from data step by step. Even with just one input and one output, you saw the core idea in action.</p>
+    <p>In larger networks, there are more layers and more data, but the heart of learning remains the same: follow the gradient downhill to reduce errors. Now that you understand how gradients flow backward through the network, you’re ready to try bigger models, explore different activation functions, or use new loss functions. Keep experimenting, have fun with your code, and watch your models learn!</p>
+</section>
+
+
+    </div>
+    <script>
+        // Set up the scene, camera, and renderer
+        const container = document.getElementById('visualization-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        // Add OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 2;
+        controls.maxDistance = 10;
+
+        // Set initial camera position
+        camera.position.set(3, 3, 3);
+        camera.lookAt(0, 0, 0);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Define the loss function L(w, b) = w^2 + b^2
+        function L(w, b) {
+            return w * w + b * b;
+        }
+
+        // Create the surface geometry
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const indices = [];
+        const colors = [];
+        const wRange = 2;
+        const bRange = 2;
+        const segments = 20;
+        const stepW = (2 * wRange) / segments;
+        const stepB = (2 * bRange) / segments;
+
+        // Generate vertices and colors
+        for (let i = 0; i <= segments; i++) {
+            for (let j = 0; j <= segments; j++) {
+                const w = -wRange + i * stepW;
+                const b = -bRange + j * stepB;
+                const z = L(w, b);
+                vertices.push(w, b, z);
+                const color = new THREE.Color().setHSL(0.6 - z * 0.1, 0.7, 0.5);
+                colors.push(color.r, color.g, color.b);
+            }
+        }
+
+        // Generate indices for triangles
+        for (let i = 0; i < segments; i++) {
+            for (let j = 0; j < segments; j++) {
+                const a = i * (segments + 1) + j;
+                const b = a + 1;
+                const c = (i + 1) * (segments + 1) + j;
+                const d = c + 1;
+                indices.push(a, b, d);
+                indices.push(a, d, c);
+            }
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setIndex(indices);
+        geometry.computeVertexNormals();
+
+        const material = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide });
+        const surface = new THREE.Mesh(geometry, material);
+        scene.add(surface);
+
+        // Gradient vector and point
+        let pointMesh, arrowHelper;
+        const params = { w: 1.0, b: 1.0 };
+
+        function updateGradient() {
+            if (pointMesh) scene.remove(pointMesh);
+            if (arrowHelper) scene.remove(arrowHelper);
+
+            const w = params.w;
+            const b = params.b;
+            const grad_w = 2 * w;
+            const grad_b = 2 * b;
+            const z = L(w, b);
+
+            const pointGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+            const pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
+            pointMesh.position.set(w, b, z);
+            scene.add(pointMesh);
+
+            const dir = new THREE.Vector3(grad_w, grad_b, 0).normalize();
+            const origin = new THREE.Vector3(w, b, z);
+            arrowHelper = new THREE.ArrowHelper(dir, origin, 0.5, 0xff0000, 0.1, 0.05);
+            scene.add(arrowHelper);
+        }
+
+        updateGradient();
+
+        // Set up GUI
+        const gui = new dat.GUI({ autoPlace: false });
+        document.getElementById('gui').appendChild(gui.domElement);
+        gui.add(params, 'w', -2, 2).step(0.1).onChange(updateGradient);
+        gui.add(params, 'b', -2, 2).step(0.1).onChange(updateGradient);
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+
+
+</body>
+</html>
