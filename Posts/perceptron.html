@@ -160,7 +160,7 @@
 <body id="top">
 
 <aside class="sidebar">
-  <h2><a href="#top" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+  <h2><a href="https://sidhu2690.github.io/CogniXis/" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
   <ul>
     <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
     <li><a href="#biological-inspiration" class="sidebar-link">2. Biological Inspiration</a></li>
@@ -168,8 +168,10 @@
     <li><a href="#perceptron-basics" class="sidebar-link">4. Perceptron Basics</a></li>
     <li><a href="#perceptron-advanced" class="sidebar-link">5. Perceptron – Going Beyond Straight Lines</a></li>
     <li><a href="#activation-functions" class="sidebar-link">6. Activation Functions</a></li>
-    <li><a href="#code-example" class="sidebar-link">7. Code Example</a></li>
-    <li><a href="#conclusion" class="sidebar-link">8. Conclusion</a></li>
+    <li><a href="#multilayer-perceptron" class="sidebar-link">7. Multilayer Perceptron and Neural Networks
+</a></li>
+    <li><a href="#code-example" class="sidebar-link">8. Code Example</a></li>
+    <li><a href="#conclusion" class="sidebar-link">9. Conclusion</a></li>
   </ul>
 </aside>
 
@@ -464,8 +466,7 @@
 
     <p>In short, activation functions give the perceptron <strong>flexibility</strong>—the ability to adapt to more complex patterns. Without them, we’d be stuck in the land of straight lines forever.</p>
 
-    <p>This idea—stacking layers with activation functions—is what leads us to neural networks, where things really get powerful. But one step at a time!</p>
-</section>
+  </section>
 
 
         <section id="activation-functions">
@@ -520,8 +521,64 @@
     <p>Each activation function plays a unique role. ReLU and its variants dominate deep learning models, sigmoid still shines in classification, and linear activations work well when we just need the raw number. Choose wisely based on what your model needs to learn!</p>
 </section>
 
-  <section id="code-example">
-    <h2>7. Code Example</h2>
+
+<section id="multilayer-perceptron">
+    <h2>7. Multilayer Perceptron and Neural Networks</h2>
+
+    <p>So now we’ve figured out how to approximate functions and predict things—like house prices or whether it’s a good day for a picnic—using a perceptron. But what happens when the patterns get trickier? What if the relationships in our data aren’t just straight lines but twisty, curvy, or super complicated? A simple summing of inputs and passing them through a non-linear activation function might not cut it anymore. We need a bigger, more complex function to handle that. So, what do we do? We stack these neurons together!</p>
+    <p>The idea is pretty simple: we take the output of one perceptron and use it as the input for another. Then we keep doing that, building layers of perceptrons. Each layer processes the data a bit more, letting us capture those wild, complex patterns step by step. It’s like passing a baton in a relay race—each runner (or layer) adds something new to the effort.</p>
+
+    <p>Let’s break it down with some math. In a single perceptron, we had this:</p>
+    <p style="text-align: center;">\[ y = f(w_1 x_1 + w_2 x_2 + \dots + w_n x_n + b) \]</p>
+    <p>Here, \( x_1, x_2, \dots, x_n \) are our inputs (like temperature or rain chance), \( w_1, w_2, \dots, w_n \) are the weights, \( b \) is the bias, and \( f \) is the activation function that bends the output a bit.</p>
+    <p>Now, in a multilayer perceptron, we add more layers. Here we have three types of layers:</p>
+
+    <ol>
+        <li><strong>Input layer:</strong> Passes the raw inputs \(x_1, x_2, \dots, x_n\) into the network without weights or activations.</li>
+        <li><strong>Hidden layer (second layer):</strong> A set of neurons that transforms the inputs into intermediate values:</li>
+    </ol>
+    <p style="text-align: center;">
+    \(
+    \begin{aligned}
+    a_1 &= f\bigl(w_{11}x_1 + w_{12}x_2 + \dots + w_{1n}x_n + b_1\bigr), \\
+    a_2 &= f\bigl(w_{21}x_1 + w_{22}x_2 + \dots + w_{2n}x_n + b_2\bigr), \\
+    \vdots \\
+    a_m &= f\bigl(w_{m1}x_1 + w_{m2}x_2 + \dots + w_{mn}x_n + b_m\bigr)
+    \end{aligned}
+    \)
+    </p>
+    <ol start="3">
+        <li><strong>Output layer:</strong> Takes the hidden outputs \(a_1, a_2, \dots, a_m\) and produces the final prediction:</li>
+    </ol>
+    <p style="text-align: center;">
+    \(
+    y = g\bigl(v_1a_1 + v_2a_2 + \dots + v_ma_m + c\bigr)
+    \)
+    </p>
+
+    <p>Here:</p>
+    <ul>
+        <li>\(w_{ij}\) are weights from input \(x_j\) to hidden neuron \(a_i\).</li>
+        <li>\(b_i\) are biases for hidden neurons.</li>
+        <li>\(f(\cdot)\) is the activation function in the hidden layer (e.g., ReLU, sigmoid).</li>
+        <li>\(v_i\) are weights from hidden neuron \(a_i\) to the output.</li>
+        <li>\(c\) is the bias for the output neuron.</li>
+        <li>\(g(\cdot)\) is the output activation (identity for regression, sigmoid/softmax for classification).</li>
+    </ul>
+
+    <p>By adjusting all weights and biases via training (backpropagation), the MLP learns to approximate very complex functions.</p>
+
+
+    <div class="center-figure">
+        <img src="assets/perceptron/mlp.png" alt="Neural Network Layers">
+        <figcaption>Figure 10: Input, hidden, and output layers in an MLP.</figcaption>
+    </div>
+</section>
+
+
+
+ <section id="code-example">
+    <h2>8. Code Example</h2>
     <p>Time to get hands-on! Let’s write a simple perceptron using NumPy. This one doesn’t learn yet—we’re manually setting the weights. Later, we’ll explore how to find the best weights automatically using a technique called <strong>gradient descent</strong>.</p>
 
     <h3>Step 1: Define a Perceptron</h3>
@@ -559,12 +616,37 @@ for x, label in zip(inputs, labels):
 
     <p>And that’s it! You’ll see the perceptron correctly outputs 1 only when both inputs are 1—just like a real AND gate.</p>
 
-    <p>Note: We haven’t covered <em>how</em> to learn the weights from data yet—that's where <strong>gradient descent</strong> comes in. We’ll dive into that soon!</p>
+    <h3>Step 3: Simple MLP with NumPy</h3>
+    <p>Now let’s extend to a tiny multilayer perceptron (one hidden layer). We’ll do a forward pass with a ReLU hidden activation and sigmoid output.</p>
+    <pre><code class="language-python">
+# Define forward pass for a 2-2-1 MLP
+
+def mlp_forward(x, W1, b1, W2, b2):
+    # Hidden layer (ReLU)
+    z1 = np.dot(W1, x) + b1
+    a1 = np.maximum(0, z1)
+    # Output layer (sigmoid)
+    z2 = np.dot(W2, a1) + b2
+    y = 1 / (1 + np.exp(-z2))
+    return y
+
+# Example parameters for 2 inputs, 2 hidden neurons, 1 output\W1 = np.array([[0.5, -0.6], [0.1, 0.8]])
+b1 = np.array([-0.1, 0.2])
+W2 = np.array([[1.2, -0.7]])
+b2 = 0.3
+
+# Test the MLP on the same inputs
+for x in inputs:
+    output = mlp_forward(x, W1, b1, W2, b2)
+    print(f"Input: {x}, MLP output: {output:.4f}")
+    </code></pre>
+
+    <p>This simple MLP uses one hidden layer to learn nonlinear patterns. In a full training loop, we’d adjust <code>W1, b1, W2, b2</code> automatically via backpropagation.</p>
 </section>
 
 
         <section id="conclusion">
-            <h2>8. Conclusion</h2>
+            <h2>9. Conclusion</h2>
             <p>And there you have it—the perceptron, from brain cells to code. We’ve seen how it’s inspired by neurons, uses weights and bias for decisions, and ties into linear models like house price prediction. Plus, we’ve peeked at why activation functions matter when things get non-linear. It’s a small step, but it’s the foundation of so much more in machine learning. Hope you enjoyed this ride—keep tinkering and exploring!</p>
         </section>
     </div>
