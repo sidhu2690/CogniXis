@@ -1,145 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="sidharth">
-    <meta name="date" content="2025-05-06">
-    <title>CogniXis - Machine Learning Blog</title>
+  <meta charset="UTF-8" />
+  <title>CogniXis • Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Include fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css?family=Bree%20Serif&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bree%20Serif&display=swap">
+  </noscript>
+  <link rel="preload" href="https://fonts.googleapis.com/css?family=Source%20Sans%20Pro:400,700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source%20Sans%20Pro:400,700&display=swap">
+  </noscript>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" 
+        integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* Global Reset & Box Sizing */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* Base Styles */
+    body {
+      background-color: #fcfcf9;
+      color: #333;
+      font-family: "Source Sans Pro", Arial, sans-serif;
+      line-height: 1.6;
+      padding: 5px;
+    }
+    a {
+      color: #2b9e5e;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    /* Container & Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 5px;
+    }
+    header {
+      text-align: center;
+      padding: 5px 0;
+    }
+    header .site-title {
+      font-family: "Bree Serif", Georgia, serif;
+      font-size: 2.5rem;
+      color: #333;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0 2rem;
+    }
+    nav a {
+      font-weight: bold;
+    }
+    /* Introduction Section */
+    .intro {
+      margin-bottom: 2rem;
+    }
+    .intro h2 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .intro p {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    /* Post List */
+    .post-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .post-list li {
+      margin-bottom: 1rem;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .post-list li a {
+      font-size: 1.2rem;
+      display: block;
+    }
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      font-size: 0.9rem;
+      color: #777;
+    }
+    .social-icons {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .social-icons li a {
+      color: #333;
+      font-size: 1.2rem;
+    }
+    .social-icons li a:hover {
+      color: #2b9e5e;
+    }
 
-    <!-- Polyfill for browser compatibility -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <!-- MathJax for rendering equations -->
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      nav ul {
+        flex-direction: column;
+        align-items: center;
+      }
+      nav ul li {
+        width: 100%;
+        text-align: center;
+        margin: 0.5rem 0;
+      }
+      header .site-title {
+        font-size: 2rem;
+      }
+      .intro h2 {
+        font-size: 1.5rem;
+      }
+      .post-list li {
+        padding: 8px;
+      }
+      .post-list li a {
+        font-size: 1rem;
+      }
+    }
 
-    <script>
-        // Highlight active section in sidebar on scroll
-        document.addEventListener("scroll", function () {
-            const sections = document.querySelectorAll("section");
-            const links = document.querySelectorAll(".sidebar-link");
-            let index = sections.length;
-            while (--index && window.scrollY + 60 < sections[index].offsetTop) {}
-            links.forEach((link) => link.classList.remove("active"));
-            links[index].classList.add("active");
-        });
-    </script>
-
-    <style>
-        body {
-            font-family: 'Google Sans', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            line-height: 1.6;
-        }
-        .sidebar {
-            width: 220px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #fff;
-            border-right: 1px solid #ddd;
-            padding-top: 1rem;
-        }
-        .sidebar h2 {
-            margin-left: 20px;
-            font-size: 18px;
-        }
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-        }
-        .sidebar-link {
-            display: block;
-            padding: 10px 20px;
-            color: #333;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-        .sidebar-link:hover {
-            background-color: #f1f1f1;
-        }
-        .sidebar-link.active {
-            background-color: #e0f0ff;
-            font-weight: bold;
-            color: #2588df;
-        }
-        .content {
-            margin-left: 240px;
-            padding: 2rem;
-            max-width: 800px;
-        }
-        section {
-            margin-bottom: 2rem;
-        }
-        h1, h2, h3 {
-            color: #333;
-        }
-        .posts-list {
-            display: flex;
-            flex-direction: column;
-        }
-        .post-entry {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
-        }
-        .post-entry h3 {
-            margin-top: 0;
-            font-size: 1.2em;
-        }
-        .post-entry p {
-            margin: 0.5rem 0;
-            font-size: 0.9em;
-            color: #555;
-        }
-        .post-entry a {
-            color: #2588df;
-            text-decoration: none;
-        }
-        .post-entry a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 0;
+      }
+      header .site-title {
+        font-size: 1.8rem;
+      }
+      .intro p, .post-list li a {
+        font-size: 0.9rem;
+      }
+      .social-icons li a {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
-<body id="top">
-    <aside class="sidebar">
-        <h2><a href="#top" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
-        <ul>
-            <li><a href="#introduction" class="sidebar-link">Introduction</a></li>
-            <li><a href="#posts" class="sidebar-link">Blog Posts</a></li>
-        </ul>
-    </aside>
-
-    <div class="content">
-        <section id="introduction">
-            <h2>Welcome to CogniXis</h2>
-            <p>Welcome to <strong>CogniXis</strong>, a blog dedicated to exploring the fascinating world of Machine Learning. Whether you're just starting out or seeking to expand your expertise, our posts offer clear, insightful, and engaging content on ML fundamentals, techniques, and applications. Dive in and discover how Machine Learning is transforming technology and society!</p>
-        </section>
-
-        <section id="posts">
-            <h2>Blog Posts</h2>
-            <div class="posts-list">
-                <div class="post-entry">
-                    <h3><a href="Posts/introduction-to-machine-learning.html">Introduction to Machine Learning</a></h3>
-                    <p>Uploaded on: May 6, 2025</p>
-                    <p>Reading time: 5 minutes</p>
-                </div>
-                <div class="post-entry">
-                    <h3><a href="Posts/understanding-supervised-learning.html">Understanding Supervised Learning</a></h3>
-                    <p>Uploaded on: May 10, 2025</p>
-                    <p>Reading time: 7 minutes</p>
-                </div>
-                <div class="post-entry">
-                    <h3><a href="Posts/exploring-unsupervised-learning.html">Exploring Unsupervised Learning</a></h3>
-                    <p>Uploaded on: May 15, 2025</p>
-                    <p>Reading time: 6 minutes</p>
-                </div>
-            </div>
-        </section>
-    </div>
+<body>
+  <header>
+    <a href="index.html" class="site-title">CogniXis</a>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="posts.html">Posts</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <!-- Introduction Section -->
+    <section class="intro">
+      <h2>Welcome to CogniXis</h2>
+      <p>
+        CogniXis is a dedicated blog that embarks on a deep journey into the world of machine learning,
+        with a special focus on deep learning. Here, we delve into the mathematical foundations and advanced
+        concepts that power modern AI—from linear algebra to state-of-the-art neural network architectures.
+      </p>
+      <p>
+        Explore topics ranging from the basics of regression and optimization to sophisticated models like
+        Graph Neural Networks, Recurrent Neural Networks, Transformers, and more. Each post is designed to take you
+        step-by-step through the theory, math, and practical implementations behind these cutting-edge techniques.
+      </p>
+    </section>
+    <!-- Posts Listing -->
+    <h1>Latest Posts</h1>
+    <ul class="post-list">
+      <li><a href="topic.html">Fundamentals of Linear Algebra &amp; Regression Analysis</a></li>
+      <li><a href="topic.html">Introduction to Perceptrons &amp; Early Neural Networks</a></li>
+      <!-- etc… -->
+    </ul>
+  </div>
+  <footer>
+    <ul class="social-icons">
+      <li><a href="#" title="Twitter"><i class="fab fa-twitter"></i></a></li>
+      <li><a href="#" title="GitHub"><i class="fab fa-github"></i></a></li>
+      <li><a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+    </ul>
+    © 2025 by CogniXis. <a href="#">Privacy policy</a>.
+  </footer>
 </body>
 </html>
