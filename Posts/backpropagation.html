@@ -488,6 +488,13 @@ Animation of gradient descent on the loss surface \(L(w, b) = w^2 + b^2\).
     <p>Intuitively, we tell the output layer, “Hey, your prediction \( \hat{y} \) isn’t right!” It replies, “I did my best with what the hidden layer gave me via \( W_3 \) and \( b_3 \).” So, we ask the second hidden layer \( h_2 \), “Why didn’t you help better?” It says, “Blame \( W_2 \) and \( b_2 \), and what I got from \( h_1 \).” We keep going back until we’ve talked to everyone. This backward pass computes how much each parameter contributed to the error.</p>
     <p>Let us focus on one specific weight, say \( W_{112} \) (the weight connecting the second input to the first unit in the first hidden layer). To learn this weight using Stochastic Gradient Descent (SGD), we need a formula for \( \frac{\partial L}{\partial W_{112}} \). We’ll see how to calculate this using the chain rule.</p>
     <p>For a weight like \( W_{111} \) (the first element of \( W_1 \)), the gradient is:</p>
+
+<div class="center-figure">
+    <img src="assets/backpropagation/network.png" alt="Gradient Descent vs Ascent">
+    <figcaption>
+Figure 3. A 3‑layer feed‑forward network (3 inputs → 2 hidden layers → 2 outputs).
+    </figcaption>
+</div>
     <p>\[ \frac{\partial L}{\partial W_{111}} = \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial a_3} \cdot \frac{\partial a_3}{\partial h_2} \cdot \frac{\partial h_2}{\partial a_2} \cdot \frac{\partial a_2}{\partial h_1} \cdot \frac{\partial h_1}{\partial a_1} \cdot \frac{\partial a_1}{\partial W_{111}} \]</p>
     <p>This chain rule links the loss all the way back to \( W_{111} \) through the layers. For \( W_{112} \), it’s similar—we just adjust the indices. But let’s make it intuitive first.</p>
     <p>We get a certain loss at the output and try to figure out who’s responsible. So, we talk to the output layer and say, “Hey! You’re not producing the desired output, better take responsibility.” The output layer says, “Well, I take responsibility for my part, but please understand that I’m only as good as the hidden layer and weights below me.” After all, the output is computed as \( \hat{y} = O(W_3 h_2 + b_3) \).</p>
