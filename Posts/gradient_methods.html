@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Exploring Gradient Descent Methods</title>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+    </style>
+</head>
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="https://sidhu2690.github.io/CogniXis/" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+        <ul>
+            <li><a href="#introduction" class="sidebar-link">1. What is Gradient Descent?</a></li>
+            <li><a href="#vanilla-gd" class="sidebar-link">2. Vanilla Gradient Descent</a></li>
+            <li><a href="#sgd" class="sidebar-link">3. Stochastic Gradient Descent</a></li>
+            <li><a href="#mini-batch" class="sidebar-link">4. Mini-batch Gradient Descent</a></li>
+            <li><a href="#momentum" class="sidebar-link">5. Momentum Method</a></li>
+            <li><a href="#nag" class="sidebar-link">6. Nesterov Accelerated Gradient</a></li>
+            <li><a href="#adagrad" class="sidebar-link">7. Adagrad</a></li>
+            <li><a href="#rmsprop" class="sidebar-link">8. RMSprop</a></li>
+            <li><a href="#adam" class="sidebar-link">9. Adam</a></li>
+            <li><a href="#tips" class="sidebar-link">10. Practical Tips</a></li>
+            <li><a href="#conclusion" class="sidebar-link">11. Conclusion</a></li>
+        </ul>
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Exploring Gradient Descent Methods</h1>
+            <p><em>A detailed guide to the mathematics behind how machines find the best path to learn.</em></p>
+        </header>
+<section id="introduction">
+  <h2>1. What is Gradient Descent?</h2>
+  <p>
+    In our last post, we saw how gradient descent works and how it powers backpropagation. Now let’s explore the different gradient‑based methods, why they matter in real‑world problems, and how they evolved from the basic gradient descent algorithm. To start, we’ll focus on the classic Gradient Descent.
+  </p>
+
+
+
+  <h3>Gradient Descent Rule</h3>
+  <p>
+    At each step, we move in the exact opposite direction of the gradient—that’s how we “go downhill” on the loss surface:
+  </p>
+  <p class="equation">
+    \( \mathbf{u} = -\,\nabla L(\theta) \)
+  </p>
+  <ul>
+    <li>The update direction \( \mathbf{u} \) is 180° from the gradient \( \nabla L \).</li>
+    <li>In other words, move opposite to \( \nabla L(\theta) \).</li>
+  </ul>
+
+  <h3>Parameter Update Equations</h3>
+  <p>For weights \(w\) and bias \(b\), the updates are:</p>
+  <p class="equation">
+    \[
+      w_{t+1} = w_t \;-\; \eta\,\nabla_w L(w_t, b_t), 
+      \quad
+      b_{t+1} = b_t \;-\; \eta\,\nabla_b L(w_t, b_t)
+    \]
+  </p>
+
+  <h3>Algorithm Outline</h3>
+  <p>Translating that into code form:</p>
+  <pre><code>
+function gradientDescent(η, maxIter):
+    t = 0
+    while t &lt; maxIter:
+        dw = ∂L/∂w
+        db = ∂L/∂b
+        w  = w − η * dw
+        b  = b − η * db
+        t += 1
+    return w, b
+  </code></pre>
+
+  <h3>Worked Example: One Data Point</h3>
+  <p>
+    Suppose we have one sample \((x, y)\) and use the loss
+    \[
+      L = \tfrac12\bigl(f(x) - y\bigr)^2,
+      \quad
+      f(x) = \frac{1}{1 + e^{-(w\,x + b)}}.
+    \]
+    Then the gradient w.r.t. \(w\) is
+  </p>
+  <p class="equation" style="text-align:center;">
+    \[
+      \nabla_w L
+      = (f(x) - y)\;\frac{\partial f(x)}{\partial w}
+      = (f(x) - y)\,f(x)\,(1 - f(x))\,x.
+    \]
+  </p>
+  <p>
+    For two points \(\{(x_i,y_i)\}_{i=1}^2\), just sum over each:
+  </p>
+  <p class="equation" style="text-align:center;">
+    \[
+      \nabla_w L
+      = \sum_{i=1}^2 (f(x_i) - y_i)\,f(x_i)\,(1 - f(x_i))\,x_i,
+      \quad
+      \nabla_b L
+      = \sum_{i=1}^2 (f(x_i) - y_i)\,f(x_i)\,(1 - f(x_i)).
+    \]
+  </p>
+
+ 
+
+  <h3>Sample Python Implementation</h3>
+  <pre><code class="python">
+import numpy as np
+
+# Example data (changed values)
+X = [0.6, 2.1]
+Y = [0.3, 0.8]
+
+def sigmoid(w, b, x):
+    return 1.0 / (1.0 + np.exp(- (w * x + b)))
+
+def compute_gradients(w, b, X, Y):
+    dw, db = 0.0, 0.0
+    for x, y in zip(X, Y):
+        pred = sigmoid(w, b, x)
+        err  = pred - y
+        dw  += err * pred * (1 - pred) * x
+        db  += err * pred * (1 - pred)
+    return dw, db
+
+def gradient_descent(eta=0.1, epochs=1000):
+    w, b = -1.5, 0.5
+    for _ in range(epochs):
+        dw, db = compute_gradients(w, b, X, Y)
+        w -= eta * dw
+        b -= eta * db
+    return w, b
+
+# Run it
+final_w, final_b = gradient_descent()
+print("Learned w, b:", final_w, final_b)
+  </code></pre>
+</section>
+
+  <section id="vanilla-gd">
+  <h2>2. Vanilla Gradient Descent</h2>
+  <p>
+    We call it “vanilla” because it’s the purest form of gradient descent: every step uses the <em>entire</em> dataset to compute one exact update.
+  </p>
+
+  <!-- Simple math for the full‑batch update -->
+  <p class="equation">
+    If our loss over <code>N</code> examples is  
+    \[
+      L(w,b) = \frac{1}{N} \sum_{i=1}^N \tfrac12 \bigl(f(x_i) - y_i\bigr)^2,
+      \quad
+      f(x) = \frac{1}{1 + e^{-(w x + b)}},
+    \]
+    then the update rules are  
+    \[
+      w_{t+1} = w_t - \eta\,\nabla_w L(w_t,b_t),
+      \quad
+      b_{t+1} = b_t - \eta\,\nabla_b L(w_t,b_t).
+    \]
+  </p>
+  <p class="equation">
+    And the gradients themselves are  
+    \[
+      \nabla_w L = \frac{1}{N}\sum_{i=1}^N (f(x_i)-y_i)\,f(x_i)\,(1-f(x_i))\,x_i,
+      \quad
+      \nabla_b L = \frac{1}{N}\sum_{i=1}^N (f(x_i)-y_i)\,f(x_i)\,(1-f(x_i)).
+    \]
+  </p>
+
+  <h3>Why introduce it?</h3>
+  <p>
+    Because using all data gives you the most accurate “downhill” direction—no guessing or noise.
+  </p>
+
+  <h3>What’s good about it?</h3>
+  <ul>
+    <li><strong>Exact gradients:</strong> each step follows the true slope of the loss.</li>
+    <li><strong>Smooth loss curve:</strong> loss typically decreases in a steady way.</li>
+  </ul>
+
+  <h3>Why it’s not popular</h3>
+  <ul>
+    <li><strong>Very slow:</strong> one update needs a full pass over millions of samples.</li>
+    <li><strong>High memory:</strong> you must load the entire dataset to compute each gradient.</li>
+    <li><strong>Poor responsiveness:</strong> no intermediate feedback until a full batch is done.</li>
+  </ul>
+
+  <p>
+    That’s why in practice we split the dataset into smaller batches or even single examples—giving us faster updates, less memory strain, and often quicker convergence.
+  </p>
+</section>
+
+
+<section id="sgd">
+  <h2>3. Stochastic Gradient Descent</h2>
+  <p>
+    Vanilla GD is accurate but slow—so we asked, “Why process the whole dataset before each step?”  
+    Stochastic Gradient Descent (SGD) speeds things up by updating parameters one sample at a time.
+  </p>
+
+
+  <h3>How SGD Works</h3>
+  <p>
+    Instead of the full-batch loss, we use the loss on a single example \(i\):  
+    <span class="equation">
+      \[
+        L_i(w, b) = \tfrac12\bigl(f(x_i) - y_i\bigr)^2,
+        \quad
+        f(x) = \frac{1}{1 + e^{-(w x + b)}}.
+      \]
+    </span>  
+    Then the update is  
+    <span class="equation">
+      \[
+        w_{t+1} = w_t \;-\; \eta \,\nabla_w L_i(w_t, b_t),
+        \quad
+        b_{t+1} = b_t \;-\; \eta \,\nabla_b L_i(w_t, b_t).
+      \]
+    </span>
+  </p>
+
+  <h3>What’s the Deal?</h3>
+  <ul>
+    <li><strong>Lightning‑fast updates:</strong> You adjust your model after each sample, so you get immediate feedback.</li>
+    <li><strong>Less memory:</strong> Only one (or a few) samples in memory at a time.</li>
+    <li><strong>More noise:</strong> Single‑point gradients are a noisy estimate of the true gradient, so your path “zig‑zags.”</li>
+  </ul>
+
+  <h3>When SGD Shines—and When It Struggles</h3>
+  <ul>
+    <li><strong>Great for large datasets:</strong> You can start learning before seeing every example.</li>
+    <li><strong>Quick convergence:</strong> Often finds a good-enough solution faster than full‑batch.</li>
+    <li><strong>Noisy path:</strong> Those jagged updates can slow final fine‑tuning near the minimum.</li>
+  </ul>
+
+</section>
+
+     <section id="mini-batch">
+  <h2>4. Mini‑batch Gradient Descent</h2>
+
+  <p>
+    Full‑batch GD is steady but slow, and SGD is noisy but speedy. Mini‑batch Gradient Descent strikes a balance by updating on small groups of samples at once.
+  </p>
+
+ 
+
+  <h3>How It Works</h3>
+  <p>
+    We split our data into mini‑batches \(B\) of size \(m\) (e.g., 32 or 64). For each batch, we compute the average gradient and update:
+  </p>
+  <p class="equation">
+    \[
+      L_B(w,b) = \frac{1}{m}\sum_{i\in B} L_i(w,b),
+      \quad
+      w_{t+1} = w_t - \eta\,\nabla_w L_B(w_t,b_t),
+      \quad
+      b_{t+1} = b_t - \eta\,\nabla_b L_B(w_t,b_t).
+    \]
+  </p>
+  <p>
+    Concretely,
+  </p>
+  <p class="equation" style="text-align:center;">
+    \[
+      \nabla_w L_B
+      = \frac{1}{m}\sum_{i\in B}(f(x_i)-y_i)\,f(x_i)\,(1-f(x_i))\,x_i,
+      \quad
+      \nabla_b L_B
+      = \frac{1}{m}\sum_{i\in B}(f(x_i)-y_i)\,f(x_i)\,(1-f(x_i)).
+    \]
+  </p>
+
+  <h3>Why It Helps</h3>
+  <ul>
+    <li><strong>Faster than vanilla:</strong> You don’t wait to see the entire dataset before updating.</li>
+    <li><strong>Smoother than SGD:</strong> Averaging over a few samples reduces the wild zig‑zag of pure SGD.</li>
+    <li><strong>Hardware‑friendly:</strong> Small batches fit well on GPUs or vectorized CPU operations.</li>
+  </ul>
+
+  <h3>What to Watch Out For</h3>
+  <ul>
+    <li><strong>Batch‑size trade‑off:</strong> Too small → noisy; too large → slower updates and more memory use.</li>
+    <li><strong>Shuffling matters:</strong> Always shuffle your data between epochs to avoid bias in batches.</li>
+  </ul>
+
+  <h3>Sample Python Snippet</h3>
+  <pre><code class="python">
+import numpy as np
+
+def mini_batch_gradient_descent(X, Y, w, b, eta=0.1, epochs=100, batch_size=32):
+    n = len(X)
+    for _ in range(epochs):
+        # Shuffle data
+        indices = np.random.permutation(n)
+        X_shuffled = [X[i] for i in indices]
+        Y_shuffled = [Y[i] for i in indices]
+
+        # Process each mini-batch
+        for start in range(0, n, batch_size):
+            end = start + batch_size
+            batch_X = X_shuffled[start:end]
+            batch_Y = Y_shuffled[start:end]
+
+            # Compute gradients over the batch
+            dw, db = 0.0, 0.0
+            m = len(batch_X)
+            for x, y in zip(batch_X, batch_Y):
+                pred = 1.0 / (1.0 + np.exp(- (w*x + b)))
+                err  = pred - y
+                dw  += err * pred * (1 - pred) * x
+                db  += err * pred * (1 - pred)
+            dw /= m
+            db /= m
+
+            # Update parameters
+            w -= eta * dw
+            b -= eta * db
+
+    return w, b
+
+# Example usage:
+X = [0.6, 2.1, 1.3, 0.9, 1.5]
+Y = [0.3, 0.8, 0.5, 0.4, 0.7]
+w_final, b_final = mini_batch_gradient_descent(X, Y, w=0.0, b=0.0)
+print("Learned:", w_final, b_final)
+  </code></pre>
+</section>
+
+
+ <section id="momentum">
+  <h2>5. Momentum Method</h2>
+
+  <p>
+    Gradient Descent works, but it can be painfully slow when the loss surface has steep and narrow valleys. Think of a ball rolling down such a landscape — it might zigzag back and forth before it finally settles at the bottom. This is because normal gradient descent only looks at the current gradient, without any "memory" of where it was going. 
+  </p>
+
+  <p>
+    That’s where <strong>Momentum</strong> comes in. It adds inertia — like physics. If you're moving in the same direction repeatedly, you gain "confidence" and start going faster in that direction. Just like a ball rolling down a hill picks up speed. The momentum method helps reduce oscillations and accelerates convergence, especially in ravines where one direction has steep gradients and the other is flat.
+  </p>
+
+ 
+
+  <h3>Update Rule with Momentum</h3>
+  <p>
+    Momentum modifies the standard gradient descent update by introducing a velocity vector that accumulates the gradient direction over time:
+  </p>
+  <div class="equation">
+    \[
+    \text{update}_t = \gamma \cdot \text{update}_{t-1} + \eta \nabla w_t
+    \]
+    \[
+    w_{t+1} = w_t - \text{update}_t
+    \]
+  </div>
+  <p>
+    Here,
+    <ul>
+      <li>\(\eta\) is the learning rate,</li>
+      <li>\(\gamma\) is the momentum coefficient (usually around 0.9),</li>
+      <li>\(\nabla w_t\) is the gradient at time step \(t\).</li>
+    </ul>
+  </p>
+
+  <h3>Unfolding the Momentum Updates</h3>
+  <p>
+    Let's expand the momentum updates over multiple steps to see how the history of gradients contributes:
+  </p>
+
+  <div class="equation">
+    \[
+    \begin{aligned}
+    \text{update}_0 &= 0 \\
+    \text{update}_1 &= \eta \nabla w_1 \\
+    \text{update}_2 &= \gamma \cdot \text{update}_1 + \eta \nabla w_2 = \gamma \eta \nabla w_1 + \eta \nabla w_2 \\
+    \text{update}_3 &= \gamma \cdot \text{update}_2 + \eta \nabla w_3 = \gamma^2 \eta \nabla w_1 + \gamma \eta \nabla w_2 + \eta \nabla w_3 \\
+    \text{update}_t &= \sum_{k=1}^{t} \gamma^{t-k} \cdot \eta \nabla w_k
+    \end{aligned}
+    \]
+  </div>
+
+  <p>
+    So momentum is essentially an exponentially weighted moving average of past gradients. This helps the algorithm "remember" the direction it's been heading in, and avoid sudden changes.
+  </p>
+
+  <h3>Advantages</h3>
+  <ul>
+    <li>Smoother convergence in steep, narrow loss valleys.</li>
+    <li>Accelerates training by dampening oscillations.</li>
+    <li>Leads to faster convergence in directions of consistent gradient.</li>
+  </ul>
+
+  <h3>Disadvantages</h3>
+  <ul>
+    <li>If \(\gamma\) or \(\eta\) is too high, it may overshoot the minimum.</li>
+    <li>Needs tuning of the extra hyperparameter \(\gamma\).</li>
+  </ul>
+
+  <h3>Python Code: Momentum-based Gradient Descent</h3>
+  <p>Here’s an example implementation using the sigmoid loss as in the earlier sections:</p>
+
+  <pre><code class="python">
+import numpy as np
+
+X = [0.5, 2.5]
+Y = [0.2, 0.9]
+
+def sigmoid(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+def error(w, b):
+    err = 0.0
+    for x, y in zip(X, Y):
+        fx = sigmoid(w, b, x)
+        err += 0.5 * (fx - y) ** 2
+    return err
+
+def grad_w(w, b, x, y):
+    fx = sigmoid(w, b, x)
+    return (fx - y) * fx * (1 - fx) * x
+
+def grad_b(w, b, x, y):
+    fx = sigmoid(w, b, x)
+    return (fx - y) * fx * (1 - fx)
+
+def momentum_gd():
+    w, b = -2.0, -2.0
+    eta = 1.0
+    gamma = 0.9
+    max_epochs = 1000
+    update_w, update_b = 0.0, 0.0
+
+    for epoch in range(max_epochs):
+        dw, db = 0.0, 0.0
+        for x, y in zip(X, Y):
+            dw += grad_w(w, b, x, y)
+            db += grad_b(w, b, x, y)
+
+        update_w = gamma * update_w + eta * dw
+        update_b = gamma * update_b + eta * db
+
+        w -= update_w
+        b -= update_b
+
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch}, Error = {error(w, b):.5f}")
+
+    return w, b
+  </code></pre>
+
+  <p>
+    This version smooths out the parameter updates by accumulating past gradients, leading to better and faster convergence.
+  </p>
+</section>
+
+<section id="nag">
+  <h2>6. Nesterov Accelerated Gradient (NAG)</h2>
+
+  <p>
+    Momentum helps accelerate gradient descent by building velocity, but it can sometimes go too fast and overshoot. That’s where <strong>Nesterov Accelerated Gradient</strong> (NAG) comes in. Instead of blindly applying momentum and then checking the gradient, NAG first looks ahead to where the momentum would take it — and computes the gradient there. It’s like “looking before you leap.”
+  </p>
+
+
+
+  <h3>Why NAG?</h3>
+  <p>
+    In standard momentum, the gradient is computed at the current position \( w_t \), even though the next step will include a momentum term. But with NAG, we say: “Hey, I know I’m going to move a bit forward anyway because of momentum — let’s compute the gradient over there instead.” This look-ahead strategy gives better directions and reduces overshooting.
+  </p>
+
+  <h3>Update Rule for NAG</h3>
+  <p>The core update steps are:</p>
+  <div class="equation">
+    \[
+    w_{\text{look-ahead}} = w_t - \gamma \cdot \text{update}_{t-1}
+    \]
+    \[
+    \text{update}_t = \gamma \cdot \text{update}_{t-1} + \eta \nabla_w L(w_{\text{look-ahead}})
+    \]
+    \[
+    w_{t+1} = w_t - \text{update}_t
+    \]
+  </div>
+
+  <p>
+    By evaluating the gradient at this <em>look-ahead</em> position, NAG gets a better sense of where it’s heading, and adjusts the step more effectively.
+  </p>
+
+  <h3>Unfolding the Math</h3>
+  <p>It still accumulates gradients over time, like Momentum:</p>
+  <div class="equation">
+    \[
+    \text{update}_t = \sum_{k=1}^{t} \gamma^{t-k} \cdot \eta \nabla_w L(w_{\text{look-ahead}, k})
+    \]
+  </div>
+  <p>
+    The key difference is that the gradients \( \nabla_w L(w_{\text{look-ahead}, k}) \) are computed at the look-ahead positions.
+  </p>
+
+  <h3>Advantages</h3>
+  <ul>
+    <li>More accurate updates by anticipating future position.</li>
+    <li>Faster convergence than basic Momentum.</li>
+    <li>Reduces oscillations near minima.</li>
+  </ul>
+
+  <h3>Disadvantages</h3>
+  <ul>
+    <li>More complex to implement than Momentum.</li>
+    <li>Still requires tuning of both \( \gamma \) and \( \eta \).</li>
+  </ul>
+
+  <h3>Python Code: Nesterov Accelerated Gradient Descent</h3>
+  <pre><code class="python">
+import numpy as np
+
+X = [0.5, 2.5]
+Y = [0.2, 0.9]
+
+def sigmoid(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+def error(w, b):
+    err = 0.0
+    for x, y in zip(X, Y):
+        fx = sigmoid(w, b, x)
+        err += 0.5 * (fx - y) ** 2
+    return err
+
+def grad_w(w, b, x, y):
+    fx = sigmoid(w, b, x)
+    return (fx - y) * fx * (1 - fx) * x
+
+def grad_b(w, b, x, y):
+    fx = sigmoid(w, b, x)
+    return (fx - y) * fx * (1 - fx)
+
+def nesterov_gd():
+    w, b = -2.0, -2.0
+    eta = 1.0
+    gamma = 0.9
+    max_epochs = 1000
+    update_w, update_b = 0.0, 0.0
+
+    for epoch in range(max_epochs):
+        # Look ahead
+        w_look = w - gamma * update_w
+        b_look = b - gamma * update_b
+
+        dw, db = 0.0, 0.0
+        for x, y in zip(X, Y):
+            dw += grad_w(w_look, b_look, x, y)
+            db += grad_b(w_look, b_look, x, y)
+
+        update_w = gamma * update_w + eta * dw
+        update_b = gamma * update_b + eta * db
+
+        w -= update_w
+        b -= update_b
+
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch}, Error = {error(w, b):.5f}")
+
+    return w, b
+  </code></pre>
+
+  <p>
+    This implementation uses the look-ahead strategy to compute gradients. This usually results in faster and more stable convergence, especially in tricky optimization landscapes.
+  </p>
+</section>
+<section id="adagrad">
+    <h2>7. Adagrad</h2>
+
+    <p>As we’ve seen, using a constant learning rate across all parameters can be inefficient, especially when dealing with features that vary in frequency. That’s where <strong>Adagrad</strong> comes in—it adapts the learning rate individually for each parameter based on how often it's updated.</p>
+
+    <p><strong>Intuition:</strong> If a parameter has been updated a lot in the past, it probably doesn’t need big steps anymore. So, Adagrad reduces the learning rate for those parameters and allows larger steps for those that rarely get updated. This is super useful in settings like natural language processing, where some words/features appear way more often than others.</p>
+
+    <p><strong>Mathematics:</strong> Let’s say we’re trying to minimize a loss \( L(w) \). At time step \( t \), Adagrad updates as follows:</p>
+
+    <p>We maintain a running sum of squares of past gradients:</p>
+    \[
+    v_t = v_{t-1} + (\nabla_w L(w_t))^2
+    \]
+
+    <p>Then we update the weights like this:</p>
+    \[
+    w_{t+1} = w_t - \frac{\eta}{\sqrt{v_t + \epsilon}} \nabla_w L(w_t)
+    \]
+
+    <p>Here:</p>
+    <ul>
+        <li>\( \eta \) is the initial learning rate</li>
+        <li>\( v_t \) accumulates squared gradients</li>
+        <li>\( \epsilon \) is a small constant to prevent division by zero, often \( 1 \times 10^{-8} \)</li>
+    </ul>
+
+    <p>Note: The denominator keeps growing as more gradients are accumulated, which means the effective learning rate becomes smaller and smaller over time.</p>
+
+    <h3>Unrolling a few steps:</h3>
+
+    <pre><code>
+    v₀ = 0
+    v₁ = v₀ + (∇w₁)² = (∇w₁)²
+    w₂ = w₁ - (η / sqrt(v₁ + ε)) * ∇w₁
+
+    v₂ = v₁ + (∇w₂)² = (∇w₁)² + (∇w₂)²
+    w₃ = w₂ - (η / sqrt(v₂ + ε)) * ∇w₂
+    ...
+    </code></pre>
+
+    <h3>Python Code Example:</h3>
+
+    <pre><code class="language-python">
+import numpy as np
+
+# Example sigmoid function
+def f(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+# Gradients
+def grad_w(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx) * x
+
+def grad_b(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx)
+
+# Adagrad Gradient Descent
+def adagrad():
+    X = [0.4, 2.0]
+    Y = [0.1, 0.95]
+
+    w, b = -1.0, -1.0
+    eta = 1.0
+    epsilon = 1e-8
+    max_epochs = 1000
+
+    vw, vb = 0, 0  # Accumulate squared gradients
+
+    for epoch in range(max_epochs):
+        dw, db = 0, 0
+        for x, y in zip(X, Y):
+            dw += grad_w(w, b, x, y)
+            db += grad_b(w, b, x, y)
+
+        vw += dw ** 2
+        vb += db ** 2
+
+        w -= (eta / (np.sqrt(vw) + epsilon)) * dw
+        b -= (eta / (np.sqrt(vb) + epsilon)) * db
+
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch}: w = {w:.4f}, b = {b:.4f}")
+
+    return w, b
+    </code></pre>
+
+    <h3>Why Adagrad?</h3>
+    <p>It’s particularly effective in sparse data environments—think NLP, recommender systems, or click-through rate prediction—where some features show up rarely. Those features can still learn quickly because Adagrad gives them a bigger learning rate initially.</p>
+
+    <h3>Limitations:</h3>
+    <p>The main issue with Adagrad is that it keeps accumulating gradients forever. That makes the effective learning rate shrink continuously, often to the point where updates nearly stop altogether.</p>
+
+
+    <!-- Optional placeholder for visualization -->
+    <!-- <img src="images/adagrad-intuition.png" alt="Adagrad Visual Intuition" /> -->
+
+</section>
+
+<section id="rmsprop">
+    <h2>8. RMSprop</h2>
+
+    <p>Adagrad was a neat idea—it adjusted the learning rate per parameter—but it had one big flaw: the denominator keeps growing over time, which causes the learning rate to shrink and eventually become too small to be useful. So we ask: can we get the same per-parameter adaptiveness without killing the learning rate?</p>
+
+    <p>That’s where <strong>RMSprop</strong> (Root Mean Square Propagation) steps in.</p>
+
+    <h3>Intuition:</h3>
+    <p>Instead of letting the denominator grow forever, we keep a moving average of squared gradients. That way, the learning rate stays alive longer while still adapting to the parameter's behavior.</p>
+    <p>Think of it like using a memory that gradually forgets old information. This keeps the scale of updates under control without freezing them like Adagrad does.</p>
+
+    <h3>Update Rule:</h3>
+    <p>We replace Adagrad's accumulated squared gradients with an exponentially decaying average:</p>
+
+    \[
+    v_t = \beta v_{t-1} + (1 - \beta)(\nabla_w L(w_t))^2
+    \]
+    \[
+    w_{t+1} = w_t - \frac{\eta}{\sqrt{v_t + \epsilon}} \nabla_w L(w_t)
+    \]
+
+    <ul>
+        <li>\( \beta \in [0.9, 0.99] \) controls how much past gradients are remembered (typically 0.9)</li>
+        <li>\( \epsilon \) is a small constant to avoid division by zero (e.g., \( 1e{-8} \))</li>
+        <li>\( \eta \) is the learning rate</li>
+    </ul>
+
+    <h3>Step-by-step Expansion:</h3>
+    <pre><code>
+    v₀ = 0
+    v₁ = β * v₀ + (1 - β)(∇w₁)²
+    w₂ = w₁ - (η / sqrt(v₁ + ε)) * ∇w₁
+
+    v₂ = β * v₁ + (1 - β)(∇w₂)²
+    w₃ = w₂ - (η / sqrt(v₂ + ε)) * ∇w₂
+    ...
+    </code></pre>
+
+    <h3>Python Code Example:</h3>
+    <pre><code class="language-python">
+import numpy as np
+
+def f(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+def grad_w(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx) * x
+
+def grad_b(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx)
+
+def rmsprop():
+    X = [0.4, 2.0]
+    Y = [0.1, 0.95]
+
+    w, b = -1.0, -1.0
+    eta = 0.1
+    beta = 0.9
+    epsilon = 1e-8
+    max_epochs = 1000
+
+    vw, vb = 0, 0  # Initialize decaying average of squared gradients
+
+    for epoch in range(max_epochs):
+        dw, db = 0, 0
+        for x, y in zip(X, Y):
+            dw += grad_w(w, b, x, y)
+            db += grad_b(w, b, x, y)
+
+        vw = beta * vw + (1 - beta) * dw ** 2
+        vb = beta * vb + (1 - beta) * db ** 2
+
+        w -= (eta / (np.sqrt(vw) + epsilon)) * dw
+        b -= (eta / (np.sqrt(vb) + epsilon)) * db
+
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch}: w = {w:.4f}, b = {b:.4f}")
+
+    return w, b
+    </code></pre>
+
+    <h3>Why RMSprop Works:</h3>
+    <ul>
+        <li>It adjusts learning rates like Adagrad but avoids vanishing updates.</li>
+        <li>It smooths out noisy updates, especially in non-convex landscapes.</li>
+        <li>It works very well for mini-batch training and deep neural networks.</li>
+    </ul>
+
+    <h3>Limitations:</h3>
+    <p>You still need to tune \( \beta \) and \( \eta \), and sometimes the moving average may still slow down learning too much if gradients are very noisy or change drastically.</p>
+
+    <!-- Optional placeholder for diagram -->
+    <!-- <img src="images/rmsprop-diagram.png" alt="RMSprop intuition visual" /> -->
+
+</section>
+
+ <section id="adam">
+    <h2>9. Adam (Adaptive Moment Estimation)</h2>
+
+    <h3>Question: What’s Adam and why is it so popular?</h3>
+    <p><strong>Answer:</strong> Adam is like the best of both worlds—it combines the ideas of Momentum (which tracks gradients over time) and RMSprop (which adapts learning rates based on recent gradient magnitudes), while also correcting for bias in early updates.</p>
+
+    <h3>Intuition:</h3>
+    <p>Adam estimates both the <em>first moment</em> (mean of gradients) and the <em>second moment</em> (uncentered variance of gradients), then adjusts parameters accordingly. The result is an adaptive, memory-aware optimizer that's very stable and requires minimal tuning.</p>
+    
+    <p>Why first moment? To average the gradient (Momentum).<br>
+       Why second moment? To scale the update by how large the gradients have been recently (RMSprop).<br>
+       Why bias correction? Because early on, moving averages are biased toward zero.</p>
+
+    <h3>Update Rules:</h3>
+    \[
+    m_t = \beta_1 m_{t-1} + (1 - \beta_1) \nabla_w L(w_t)
+    \]
+    \[
+    v_t = \beta_2 v_{t-1} + (1 - \beta_2)(\nabla_w L(w_t))^2
+    \]
+    \[
+    \hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
+    \]
+    \[
+    w_{t+1} = w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \hat{m}_t
+    \]
+
+    <ul>
+        <li>\( \beta_1 = 0.9 \), \( \beta_2 = 0.999 \), \( \epsilon = 10^{-8} \) are typical</li>
+        <li>\( m_t \): exponential moving average of gradients</li>
+        <li>\( v_t \): exponential moving average of squared gradients</li>
+        <li>\( \hat{m}_t, \hat{v}_t \): bias-corrected versions to deal with initial zero bias</li>
+    </ul>
+
+    <h3>Why Bias Correction?</h3>
+    <p>Because at early iterations, \( m_t \) and \( v_t \) are initialized at 0 and biased toward 0. The corrections ensure they become unbiased estimators of the true expectations:</p>
+    
+    <pre><code>
+    Let gₜ = ∇wₜ
+    mₜ = β₁mₜ₋₁ + (1 - β₁)gₜ
+    Expand mₜ recursively:
+    mₜ = (1 - β₁)Σᵢ=₁ᵗ β₁^(t-i) * gᵢ
+
+    Take expectation:
+    E[mₜ] = (1 - β₁) * E[g] * Σᵢ=₁ᵗ β₁^(t-i) 
+          = E[g] * (1 - β₁)(1 + β₁ + β₁² + ... + β₁^(t-1))
+          = E[g](1 - β₁^t)
+
+    So we correct by dividing:
+    E[ṁₜ] = E[mₜ / (1 - β₁^t)] = E[g]
+    </code></pre>
+
+    <h3>Python Code Example:</h3>
+    <pre><code class="language-python">
+import numpy as np
+
+def f(w, b, x):
+    return 1.0 / (1.0 + np.exp(-(w * x + b)))
+
+def grad_w(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx) * x
+
+def grad_b(w, b, x, y):
+    fx = f(w, b, x)
+    return (fx - y) * fx * (1 - fx)
+
+def adam():
+    X = [0.4, 2.0]
+    Y = [0.1, 0.95]
+
+    w, b = -1.0, -1.0
+    eta = 0.01
+    beta1 = 0.9
+    beta2 = 0.999
+    epsilon = 1e-8
+
+    mw, mb = 0, 0
+    vw, vb = 0, 0
+
+    max_epochs = 1000
+
+    for t in range(1, max_epochs + 1):
+        dw, db = 0, 0
+        for x, y in zip(X, Y):
+            dw += grad_w(w, b, x, y)
+            db += grad_b(w, b, x, y)
+
+        # First moment
+        mw = beta1 * mw + (1 - beta1) * dw
+        mb = beta1 * mb + (1 - beta1) * db
+
+        # Second moment
+        vw = beta2 * vw + (1 - beta2) * dw ** 2
+        vb = beta2 * vb + (1 - beta2) * db ** 2
+
+        # Bias correction
+        mw_hat = mw / (1 - beta1 ** t)
+        mb_hat = mb / (1 - beta1 ** t)
+        vw_hat = vw / (1 - beta2 ** t)
+        vb_hat = vb / (1 - beta2 ** t)
+
+        w -= eta * mw_hat / (np.sqrt(vw_hat) + epsilon)
+        b -= eta * mb_hat / (np.sqrt(vb_hat) + epsilon)
+
+        if t % 100 == 0:
+            print(f"Epoch {t}: w = {w:.4f}, b = {b:.4f}")
+
+    return w, b
+    </code></pre>
+
+    <h3>Takeaways:</h3>
+    <ul>
+        <li>Adam adapts learning rates per parameter (like RMSprop).</li>
+        <li>Uses historical gradient info to smooth updates (like Momentum).</li>
+        <li>Bias correction gives reliable early training behavior.</li>
+        <li>Works well out of the box with minimal tuning.</li>
+    </ul>
+
+    <h3>Should You Always Use Adam?</h3>
+    <ul>
+        <li><strong>Yes, for most deep learning tasks</strong>: Especially when you don’t want to hand-tune learning rates constantly.</li>
+        <li>It’s robust and widely used as a default optimizer in frameworks like TensorFlow and PyTorch.</li>
+        <li>But: in some theoretical settings, Adam doesn’t always converge (e.g., in convex settings). Alternatives like <code>AdamW</code> (with decoupled weight decay) or even SGD with momentum still perform better in some cases.</li>
+    </ul>
+
+    <!-- Optional diagram placeholder -->
+    <!-- <img src="images/adam-diagram.png" alt="Adam optimizer intuition" /> -->
+</section>
+
+        <section id="tips">
+            <h2>10. Practical Tips</h2>
+            <ul>
+                <li>Start with Adam or SGD + Momentum—they’re solid picks.</li>
+                <li>Test learning rates: 0.001, 0.01, see what sticks.</li>
+                <li>Watch your loss—if it’s jumping around, lower \( \eta \).</li>
+                <li>Mini-batch sizes: 32–256 usually hit the sweet spot.</li>
+            </ul>
+        </section>
+
+        <section id="conclusion">
+            <h2>11. Conclusion</h2>
+            <p>Gradient descent methods are your toolkit for teaching machines. From Vanilla’s slow grind to Adam’s slick moves, each has its math and quirks. Pick one, tweak it, and watch your model learn—experimenting is half the fun!</p>
+        </section>
+    </div>
+</body>
+</html>
