@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="sidharth">
     <meta name="date" content="2025-05-06">
-    <title>Exploring Gradient Descent Methods</title>
+    <title>Gradient Descent Methods</title>
 
     <!-- Include Polyfill for broader browser support -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -75,6 +75,86 @@
         h1, h2, h3, h4 { color: #333; }
         pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
         code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .styled-table th {
+            background-color: #2588df;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table tbody tr:hover { background-color: #f1f1f1; }
+        .styled-table tbody tr.active-row { font-weight: bold; color: #2588df; }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            .sidebar ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0;
+                margin: 0;
+            }
+            .sidebar-link {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+            .sidebar-link {
+                padding: 8px;
+            }
+            .center-figure {
+                margin: 1rem 0;
+            }
+            pre {
+                font-size: 0.85em;
+                padding: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body id="top">
