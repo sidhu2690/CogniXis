@@ -1,3 +1,3 @@
 # CogniXis
 
-Visit: https://sidhu2690.github.io/CogniXis/
+Visit: https://cognixis.pages.dev/
