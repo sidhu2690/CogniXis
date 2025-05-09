@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Introduction to PyTorch: A Comprehensive Beginner's Guide</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJH8CP1D4R"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XJH8CP1D4R');
+    </script>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            width: 100%;
+        }
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .styled-table th {
+            background-color: #2588df;
+            color: #fff;
+            text-align: left;
+        }
+        .styled-table tbody tr:hover { background-color: #f1f1f1; }
+        .styled-table tbody tr.active-row { font-weight: bold; color: #2588df; }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            .sidebar ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0;
+                margin: 0;
+            }
+            .sidebar-link {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+            .sidebar-link {
+                padding: 8px;
+            }
+            .center-figure {
+                margin: 1rem 0;
+            }
+            pre {
+                font-size: 0.85em;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="https://cognixis.pages.dev/" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+
+<ul>
+    <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
+    <li><a href="#setup" class="sidebar-link">2. Setting Up PyTorch</a></li>
+    <li><a href="#tensors" class="sidebar-link">3. Understanding Tensors</a></li>
+    <li><a href="#creating-tensors" class="sidebar-link">4. Creating Tensors</a></li>
+    <li><a href="#operations" class="sidebar-link">5. Tensor Operations</a></li>
+    <li><a href="#autograd" class="sidebar-link">6. Autograd: Automatic Differentiation</a></li>
+    <li><a href="#dynamic-graphs" class="sidebar-link">7. Dynamic Computation Graphs</a></li>
+    <li><a href="#seeds" class="sidebar-link">8. Seeds and Reproducibility</a></li>
+    <li><a href="#advanced-operations" class="sidebar-link">9. Advanced Tensor Operations</a></li>
+    <li><a href="#device-management" class="sidebar-link">10. Device Management</a></li>
+    <li><a href="#data-preparation-1" class="sidebar-link">11. Data Preparation</a></li>
+    <li><a href="#data-loading" class="sidebar-link">12. Data Loading with DataLoader</a></li>
+    <li><a href="#model-definition-1" class="sidebar-link">13. Model Definition</a></li>
+    <li><a href="#training" class="sidebar-link">14. Model Training</a></li>
+    <li><a href="#evaluation" class="sidebar-link">15. Model Evaluation</a></li>
+    <li><a href="#full-example-1" class="sidebar-link">16. Full Example</a></li>
+    <li><a href="#classification-intro" class="sidebar-link">17. Introduction to Binary Classification</a></li>
+    <li><a href="#data-generation" class="sidebar-link">18. Data Generation</a></li>
+    <li><a href="#data-preparation-2" class="sidebar-link">19. Data Preparation</a></li>
+    <li><a href="#initial-model" class="sidebar-link">20. Initial Model Definition</a></li>
+    <li><a href="#loss-optimizer-1" class="sidebar-link">21. Loss Function and Optimizer</a></li>
+    <li><a href="#training-linear" class="sidebar-link">22. Training the Linear Model</a></li>
+    <li><a href="#improved-model" class="sidebar-link">23. Improved Model with Non-Linearity</a></li>
+    <li><a href="#full-example-2" class="sidebar-link">24. Full Classification Example</a></li>
+    <li><a href="#cnn-intro" class="sidebar-link">25. Introduction to CNNs for Computer Vision</a></li>
+    <li><a href="#data-download" class="sidebar-link">26. Downloading the Dataset</a></li>
+    <li><a href="#data-preparation-3" class="sidebar-link">27. Data Preparation</a></li>
+    <li><a href="#torchvision" class="sidebar-link">28. Understanding Torchvision and CNN Concepts</a></li>
+    <li><a href="#model-definition-2" class="sidebar-link">29. Model Definition</a></li>
+    <li><a href="#loss-optimizer-2" class="sidebar-link">30. Loss Function and Optimizer</a></li>
+    <li><a href="#training-loop-1" class="sidebar-link">31. Training Loop</a></li>
+    <li><a href="#full-example-3" class="sidebar-link">32. Full Code Example</a></li>
+    <li><a href="#transfer-learning-intro" class="sidebar-link">33. Introduction to Transfer Learning with CNNs</a></li>
+    <li><a href="#model-setup" class="sidebar-link">34. Setting Up the Pre-Trained Model</a></li>
+    <li><a href="#transfer-learning-concepts" class="sidebar-link">35. Understanding Transfer Learning and EfficientNet</a></li>
+    <li><a href="#freeze-layers" class="sidebar-link">36. Freezing Feature Extractor Layers</a></li>
+    <li><a href="#modify-classifier" class="sidebar-link">37. Modifying the Classifier</a></li>
+    <li><a href="#device-setup" class="sidebar-link">38. Device Setup</a></li>
+    <li><a href="#data-preparation-4" class="sidebar-link">39. Data Preparation</a></li>
+    <li><a href="#loss-optimizer-3" class="sidebar-link">40. Loss Function and Optimizer</a></li>
+    <li><a href="#training-loop-2" class="sidebar-link">41. Training Loop</a></li>
+    <li><a href="#full-example-4" class="sidebar-link">42. Full Code Example</a></li>
+</ul>
+
+
+
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Introduction to PyTorch: A Comprehensive Beginner's Guide</h1>
+            <p><em>Master the fundamentals of PyTorch, from tensors to transfer-learning, with easy-to-follow explanations and code examples.</em></p>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Welcome to your journey with PyTorch! This guide is designed for beginners who want to understand the core concepts of PyTorch. First we’ll focus on the essentials—like tensors, operations, autograd, etc.</p>
+            <p>PyTorch is an open-source library for machine learning, known for its flexibility and ease of use. At its heart are <strong>tensors</strong>—multi-dimensional arrays that power everything from simple calculations to advanced AI models. Let’s get started!</p>
+        </section>
+
+        <section id="setup">
+            <h2>2. Setting Up PyTorch</h2>
+            <p>Installing PyTorch is straightforward. Use pip or conda—here’s the pip command:</p>
+            <pre><code>pip install torch</code></pre>
+            <p>Check if it’s installed correctly:</p>
+            <pre><code>import torch
+print(torch.__version__)
+# Output: 2.5.1+cu121 (yours might differ)</code></pre>
+            <p>The version number confirms PyTorch is installed. If you see “+cu121,” it indicates GPU support with CUDA 12.1, which allows faster computations on compatible hardware.</p>
+        </section>
+
+        <section id="tensors">
+            <h2>3. Understanding Tensors</h2>
+            <p>Tensors are the backbone of PyTorch—multi-dimensional arrays that store data. They can represent scalars (single numbers), vectors (1D arrays), matrices (2D arrays), or higher-dimensional structures.</p>
+            <ul>
+                <li><strong>Scalars</strong>: A scalar is a 0-dimensional tensor, just a single number.</li>
+                <pre><code>scalar = torch.tensor(1)
+print(scalar)  # tensor(1)
+print(scalar.shape)  # torch.Size([]) (no dimensions)</code></pre>
+                <p>Since it has no dimensions, its shape is empty.</p>
+                <li><strong>Vectors</strong>: A vector is a 1D tensor, like a list of numbers.</li>
+                <pre><code>vector = torch.tensor([1, 2, 3])
+print(vector)  # tensor([1, 2, 3])
+print(vector.size())  # torch.Size([3])
+print(vector.ndim)  # 1</code></pre>
+                <p>The <code>ndim</code> property shows it has 1 dimension, and <code>size()</code> (or <code>shape</code>) gives its length.</p>
+                <li><strong>Matrices</strong>: A matrix is a 2D tensor, with rows and columns.</li>
+                <pre><code>a = torch.tensor([[1, 2, 3], [4, 5, 6]])
+print(a)
+# tensor([[1, 2, 3],
+#         [4, 5, 6]])
+print(a.shape)  # torch.Size([2, 3])
+print(a.ndim)  # 2</code></pre>
+                <p>Here, the shape [2, 3] means 2 rows and 3 columns. The number of brackets indicates the dimensions.</p>
+            </ul>
+            <p>Tensors are essential because they allow efficient, vectorized computations, which are much faster than loops.</p>
+        </section>
+
+        <section id="creating-tensors">
+            <h2>4. Creating Tensors</h2>
+            <p>PyTorch provides several functions to create tensors. These are useful for initializing data in various forms.</p>
+            <ul>
+                <li><strong>Random Tensors</strong>: Generate random numbers.</li>
+                <pre><code>print(torch.rand(3, 4))  # Uniform distribution between 0 and 1
+# Example: tensor([[0.5925, 0.2693, 0.2281, 0.4266],
+#                  [0.1266, 0.5549, 0.7434, 0.8510],
+#                  [0.4577, 0.6621, 0.9934, 0.0978]])
+print(torch.randn(3, 4))  # Normal distribution (mean 0, std 1)
+# Example: tensor([[ 0.4807, -1.1407, -0.1454, -2.3451],
+#                  [ 0.1992, -0.8318, -1.8336,  0.4050],
+#                  [-1.6917, -0.5209,  0.5799,  1.8670]])</code></pre>
+                <p><code>rand</code> is for uniform random values, while <code>randn</code> follows a normal distribution.</p>
+                <li><strong>Zeros and Ones</strong>: Create tensors filled with 0s or 1s.</li>
+                <pre><code>torch.zeros(3, 4)  # tensor([[0., 0., 0., 0.], ...])
+torch.ones(2, 3)  # tensor([[1., 1., 1.], [1., 1., 1.]])</code></pre>
+                <p>Useful for initializing empty or constant tensors.</p>
+                <li><strong>Sequences</strong>: Create a range of numbers.</li>
+                <pre><code>torch.arange(1, 10)  # tensor([1, 2, 3, 4, 5, 6, 7, 8, 9])
+torch.arange(1, 30, 3)  # tensor([1, 4, 7, 10, 13, 16, 19, 22, 25, 28])</code></pre>
+                <p><code>arange(start, end, step)</code> generates sequences with a specified step size.</p>
+            </ul>
+            <p>These functions are foundational for setting up data in PyTorch efficiently.</p>
+        </section>
+
+        <section id="operations">
+            <h2>5. Tensor Operations</h2>
+            <p>Tensors support many operations, making them powerful for mathematical computations.</p>
+            <ul>
+                <li><strong>Element-wise Operations</strong>: Apply operations to each element.</li>
+                <pre><code>A = torch.tensor([1, 2, 3, 4, 5])
+print(torch.mul(A, 5))  # tensor([5, 10, 15, 20, 25])
+print(torch.add(A, 10))  # tensor([11, 12, 13, 14, 15])</code></pre>
+                <p>These are fast because they operate on all elements simultaneously.</p>
+                <li><strong>Matrix Multiplication</strong>: Multiply matrices using <code>@</code> or <code>matmul</code>.</li>
+                <pre><code>B = torch.randn(3, 4)
+C = torch.randn(4, 5)
+print(B @ C)  # Result shape: [3, 5]</code></pre>
+                <p>The shapes must align (e.g., [3, 4] × [4, 5] = [3, 5]).</p>
+                <li><strong>Aggregations</strong>: Summarize tensor values.</li>
+                <pre><code>D = torch.tensor([[1, 2, 3], [4, 5, 6]])
+print(torch.min(D))  # tensor(1)
+print(torch.max(D))  # tensor(6)
+print(torch.mean(D, dtype=torch.float))  # tensor(3.5000)</code></pre>
+                <p>These reduce a tensor to a single value, useful for analysis.</p>
+            </ul>
+            <p>Operations are optimized for speed, leveraging hardware acceleration.</p>
+        </section>
+
+        <section id="autograd">
+            <h2>6. Autograd: Automatic Differentiation</h2>
+            <p><strong>Autograd</strong> is PyTorch’s system for automatically computing derivatives (gradients). It tracks operations on tensors to calculate how changes in inputs affect outputs.</p>
+            <p><strong>Why it’s important</strong>: Gradients are key for optimization in machine learning, though we won’t cover that here.</p>
+            <p><strong>How it works</strong>: Set <code>requires_grad=True</code> on a tensor, perform operations, then call <code>backward()</code>.</p>
+            <pre><code>x = torch.tensor(3.0, requires_grad=True)
+y = x ** 2
+y.backward()
+print(x.grad)  # tensor(6.0) (derivative: 2 * x = 6)</code></pre>
+            <p>In this example, <code>y = x²</code>, so the gradient <code>dy/dx = 2x</code>. At <code>x = 3</code>, it’s 6. Autograd computes this automatically.</p>
+        </section>
+
+        <section id="dynamic-graphs">
+            <h2>7. Dynamic Computation Graphs</h2>
+            <p>PyTorch builds <strong>dynamic computation graphs</strong>, meaning it constructs the graph as you execute code, unlike static graphs that are predefined.</p>
+            <p><strong>Why it’s important</strong>: This flexibility allows you to change operations based on conditions or data, making debugging and experimentation easier.</p>
+            <p><strong>How it works</strong>: The graph adapts on-the-fly.</p>
+            <pre><code>x = torch.tensor(2.0, requires_grad=True)
+if x > 0:
+    y = x ** 2
+else:
+    y = x ** 3
+y.backward()
+print(x.grad)  # tensor(4.0) (dy/dx = 2x = 4)</code></pre>
+            <p>Here, the computation (<code>y = x²</code> or <code>y = x³</code>) depends on <code>x</code>, and PyTorch adjusts the graph dynamically.</p>
+        </section>
+
+        <section id="seeds">
+            <h2>8. Seeds and Reproducibility</h2>
+            <p>A <strong>seed</strong> is a starting value for PyTorch’s random number generator. Randomness is used in functions like <code>rand</code> and <code>randn</code>.</p>
+            <p><strong>Why it’s important</strong>: Setting a seed ensures the same random numbers are generated each time, making results reproducible for debugging or sharing.</p>
+            <p><strong>How it works</strong>: Use <code>torch.manual_seed()</code>.</p>
+            <pre><code>torch.manual_seed(42)
+print(torch.rand(2))  # tensor([0.8823, 0.9150]) (always the same with seed 42)</code></pre>
+            <p>Without a seed, random numbers change every run. With a seed, they’re consistent.</p>
+        </section>
+
+        <section id="advanced-operations">
+            <h2>9. Other Tensor Operations</h2>
+            <p>Beyond basic operations, PyTorch supports advanced features like <strong>broadcasting</strong> and <strong>stacking</strong>.</p>
+            <ul>
+                <li><strong>Broadcasting</strong>: Automatically expands smaller tensors to match larger ones.</li>
+                <pre><code>A = torch.tensor([1, 2, 3])
+B = torch.tensor(2)
+print(A * B)  # tensor([2, 4, 6]) (B is broadcasted)</code></pre>
+                <p>This avoids manual resizing, saving time and code.</p>
+                <li><strong>Stacking</strong>: Combine tensors vertically or horizontally.</li>
+                <pre><code>A = torch.tensor([1, 2, 3])
+print(torch.vstack([A, A, A]))
+# tensor([[1, 2, 3],
+#         [1, 2, 3],
+#         [1, 2, 3]])
+print(torch.hstack([A, A, A]))
+# tensor([1, 2, 3, 1, 2, 3, 1, 2, 3])</code></pre>
+                <p><code>vstack</code> stacks rows, <code>hstack</code> concatenates elements.</p>
+            </ul>
+            <p>These operations enhance efficiency and flexibility in tensor manipulation.</p>
+        </section>
+
+        <section id="device-management">
+            <h2>10. Device Management</h2>
+            <p>PyTorch can run computations on a CPU or GPU. GPUs accelerate operations, especially for large tensors.</p>
+            <p><strong>Why it’s important</strong>: Speeding up computations saves time.</p>
+            <p><strong>How it works</strong>: Check for GPU availability and move tensors to it.</p>
+            <pre><code>device = "cuda" if torch.cuda.is_available() else "cpu"
+x = torch.tensor([1.0, 2.0]).to(device)
+print(x.device)  # e.g., cuda:0 or cpu</code></pre>
+            <p>The <code>to(device)</code> method ensures tensors use the chosen hardware. Always match devices for all tensors in your operations.</p>
+        </section>
+
+
+
+    <section id="data-preparation-1">
+<p>We’ve now converted some important operations and foundations into PyTorch, so let’s get more practical and start exploring further</p>
+        <h2>11. Data Preparation</h2>
+        <p>Data preparation is the foundation of any machine learning task. Here, we'll generate a synthetic dataset, convert it to PyTorch tensors, split it into training and test sets, and reshape it for model compatibility.</p>
+
+        <h3>11.1 Generating the Dataset</h3>
+        <p>We'll create a simple linear dataset where the relationship between input \( x \) and output \( y \) is defined by \( y = 3x + 7 \). This mimics a real-world scenario where we want to predict a continuous value.</p>
+        <pre><code>import numpy as np
+import torch
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Generate data: y = 3x + 7
+X = np.arange(1, 1000)  # Array from 1 to 999
+y = 3 * X + 7  # Linear relationship
+</code></pre>
+        <p><strong>Why this matters</strong>: The seed ensures consistent results across runs. The linear equation gives us a clear target for the model to learn.</p>
+
+        <h3>11.2 Converting to PyTorch Tensors</h3>
+        <p>PyTorch operates on tensors, which are multi-dimensional arrays optimized for GPU computation and automatic differentiation.</p>
+        <pre><code># Convert NumPy arrays to PyTorch tensors
+X = torch.tensor(X, dtype=torch.float32)
+y = torch.tensor(y, dtype=torch.float32)
+</code></pre>
+        <p><strong>Details</strong>: We use <code>torch.tensor</code> to convert NumPy arrays to tensors. The <code>dtype=torch.float32</code> specifies 32-bit floating-point numbers, which are standard for neural network computations due to their balance of precision and efficiency.</p>
+
+        <h3>11.3 Splitting the Data</h3>
+        <p>Splitting data into training and test sets allows us to train the model on one subset and evaluate its generalization on another.</p>
+        <pre><code># Split into training (80%) and test (20%) sets
+train_size = 800
+X_train, X_test = X[:train_size], X[train_size:]
+y_train, y_test = y[:train_size], y[train_size:]
+
+print(f"Training samples: {len(X_train)}, Test samples: {len(X_test)}")
+# Output: Training samples: 800, Test samples: 199
+</code></pre>
+        <p><strong>Why split?</strong>: The training set teaches the model the pattern, while the test set checks if it can predict on unseen data, preventing overfitting.</p>
+
+        <h3>11.4 Reshaping Tensors</h3>
+        <p>Our data is 1D, but PyTorch models often expect 2D inputs (e.g., [number_of_samples, number_of_features]). We’ll reshape the tensors accordingly.</p>
+        <pre><code># Add an extra dimension to make it 2D
+X_train = X_train.unsqueeze(1)  # From [800] to [800, 1]
+X_test = X_test.unsqueeze(1)    # From [199] to [199, 1]
+y_train = y_train.unsqueeze(1)
+y_test = y_test.unsqueeze(1)
+
+print(X_train.shape, y_train.shape)  # torch.Size([800, 1]), torch.Size([800, 1])
+</code></pre>
+        <p><strong>Explanation</strong>: <code>unsqueeze(1)</code> adds a dimension at index 1. For \( X \), this represents one feature per sample. This format aligns with PyTorch’s expectations for batched inputs.</p>
+    </section>
+
+    <section id="data-loading">
+        <h2>12. Data Loading with DataLoader</h2>
+        <p>The <code>DataLoader</code> class in PyTorch simplifies feeding data into the model by handling batching, shuffling, and iteration.</p>
+
+        <h3>12.1 Creating a TensorDataset</h3>
+        <p>First, we pair our inputs and targets into a dataset object.</p>
+        <pre><code>from torch.utils.data import TensorDataset, DataLoader
+
+# Create datasets
+train_dataset = TensorDataset(X_train, y_train)
+test_dataset = TensorDataset(X_test, y_test)
+</code></pre>
+        <p><strong>Purpose</strong>: <code>TensorDataset</code> combines \( X \) and \( y \) tensors, allowing us to access them together during training.</p>
+
+        <h3>12.2 Configuring the DataLoader</h3>
+        <p>The <code>DataLoader</code> splits the dataset into batches and can shuffle the data.</p>
+        <pre><code># Create DataLoaders
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+# Inspect a batch
+for X_batch, y_batch in train_loader:
+    print(f"Batch shapes: X={X_batch.shape}, y={y_batch.shape}")
+    break
+# Output: Batch shapes: X=torch.Size([32, 1]), y=torch.Size([32, 1])
+</code></pre>
+        <p><strong>Details</strong>: 
+            - <code>batch_size=32</code> means each batch contains 32 samples, balancing memory usage and training efficiency.
+            - <code>shuffle=True</code> for training randomizes the order, reducing bias from data sequence.
+            - <code>shuffle=False</code> for testing keeps the original order, which is fine since we’re only evaluating.</p>
+    </section>
+
+    <section id="model-definition-1">
+        <h2>13. Model Definition</h2>
+        <p>We’ll define a linear regression model (\( y = wx + b \)) using PyTorch’s <code>nn.Module</code>.</p>
+
+        <h3>13.1 What is nn.Module?</h3>
+        <p><code>nn.Module</code> is PyTorch’s base class for all neural network models. It provides tools for parameter management and computation.</p>
+
+        <h3>13.2 Defining the Model</h3>
+        <pre><code>import torch
+from torch import nn
+
+class LinearRegressionModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Define trainable parameters
+        self.weights = nn.Parameter(torch.randn(1, dtype=torch.float32, requires_grad=True))
+        self.bias = nn.Parameter(torch.randn(1, dtype=torch.float32, requires_grad=True))
+
+    def forward(self, x):
+        # Define the computation: y = wx + b
+        return self.weights * x + self.bias
+
+# Instantiate the model
+model = LinearRegressionModel()
+print(model.state_dict())
+# Example output: OrderedDict([('weights', tensor([0.3240])), ('bias', tensor([-0.9342]))])
+</code></pre>
+        <p><strong>Breakdown</strong>:
+            - <code>nn.Parameter</code> marks <code>weights</code> and <code>bias</code> as trainable, with <code>requires_grad=True</code> enabling gradient tracking.
+            - <code>torch.randn(1)</code> initializes them with random values from a normal distribution.
+            - The <code>forward</code> method computes the output using the linear equation.</p>
+    </section>
+
+    <section id="training">
+        <h2>14. Model Training</h2>
+        <p>Training optimizes the model’s parameters to minimize prediction error. We’ll explore the loss function, optimizer, and training loop, with a deep dive into backpropagation.</p>
+
+        <h3>14.1 Loss Function</h3>
+        <p>The loss function quantifies the difference between predictions and targets. We’ll use Mean Absolute Error (MAE).</p>
+        <pre><code>loss_fn = nn.L1Loss()
+</code></pre>
+        <p><strong>Why MAE?</strong>: MAE averages the absolute differences (\( |y_{pred} - y_{true}| \)), making it robust to outliers compared to Mean Squared Error (MSE).</p>
+
+        <h3>14.2 Optimizer</h3>
+        <p>The optimizer adjusts parameters based on gradients. We’ll use Stochastic Gradient Descent (SGD).</p>
+        <pre><code>optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+</code></pre>
+        <p><strong>Details</strong>:
+            - <code>model.parameters()</code> provides the trainable parameters (<code>weights</code> and <code>bias</code>).
+            - <code>lr=0.001</code> is the learning rate, controlling step size. A small value ensures gradual updates.</p>
+
+        <h3>14.3 Backpropagation: Understanding the Concept</h3>
+        <p>Backpropagation calculates gradients of the loss with respect to each parameter, enabling optimization. Let’s break it down.</p>
+        <h4>14.3.1 What is Backpropagation?</h4>
+        <p>Backpropagation is the process of computing the gradient of the loss function with respect to each parameter by applying the chain rule, working backward from the output to the input.</p>
+        <p><strong>Mathematical intuition</strong>: For our model \( y = wx + b \), the loss \( L = |y_{pred} - y_{true}| \). We need \( \frac{\partial L}{\partial w} \) and \( \frac{\partial L}{\partial b} \) to update \( w \) and \( b \).</p>
+
+        <h4>14.3.2 How PyTorch Handles Backpropagation</h4>
+        <p>PyTorch builds a dynamic computation graph during the forward pass. Each operation (e.g., multiplication, addition) is tracked, and gradients are computed automatically via <code>loss.backward()</code>.</p>
+ <p><strong>Steps in PyTorch</strong>:</p>
+<ol>
+    <li><strong>Forward Pass</strong>: Compute predictions and loss, building the graph.</li>
+    <li><strong>Backward Pass</strong>: Call <code>loss.backward()</code> to compute gradients.</li>
+    <li><strong>Update</strong>: Use the optimizer to adjust parameters.</li>
+</ol>
+
+
+        <h4>14.3.3 Manual Example of Backpropagation</h4>
+        <p>Let’s manually compute gradients for one sample: \( x = 2 \), \( y_{true} = 13 \) (since \( 3 \cdot 2 + 7 = 13 \)), initial \( w = 1 \), \( b = 0 \).</p>
+        <ul>
+            <li>Forward: \( y_{pred} = w \cdot x + b = 1 \cdot 2 + 0 = 2 \)</li>
+            <li>Loss: \( L = |y_{pred} - y_{true}| = |2 - 13| = 11 \)</li>
+            <li>Gradients:
+                - \( \frac{\partial L}{\partial y_{pred}} = -1 \) (since \( y_{pred} < y_{true} \), the sign of MAE’s derivative is negative)
+                - \( \frac{\partial y_{pred}}{\partial w} = x = 2 \)
+                - \( \frac{\partial L}{\partial w} = \frac{\partial L}{\partial y_{pred}} \cdot \frac{\partial y_{pred}}{\partial w} = -1 \cdot 2 = -2 \)
+                - \( \frac{\partial y_{pred}}{\partial b} = 1 \)
+                - \( \frac{\partial L}{\partial b} = \frac{\partial L}{\partial y_{pred}} \cdot \frac{\partial y_{pred}}{\partial b} = -1 \cdot 1 = -1 \)
+            </li>
+        </ul>
+        <p><strong>Verification in PyTorch</strong>:</p>
+        <pre><code># Simple example to verify
+w = nn.Parameter(torch.tensor([1.0]))
+b = nn.Parameter(torch.tensor([0.0]))
+x = torch.tensor([2.0])
+y_true = torch.tensor([13.0])
+
+y_pred = w * x + b
+loss = torch.abs(y_pred - y_true)
+loss.backward()
+
+print(w.grad, b.grad)  # tensor([-2.]) tensor([-1.])
+</code></pre>
+        <p><strong>Insight</strong>: PyTorch matches our manual computation, confirming its automatic differentiation.</p>
+
+        <h3>14.4 Training Loop</h3>
+        <p>Now, combine these concepts into the training loop.</p>
+        <pre><code>epochs = 10000
+
+for epoch in range(epochs):
+    # 1. Training mode
+    model.train()
+    
+    # 2. Forward pass
+    y_pred = model(X_train)
+    
+    # 3. Compute loss
+    loss = loss_fn(y_pred, y_train)
+    
+    # 4. Zero gradients
+    optimizer.zero_grad()
+    
+    # 5. Backward pass
+    loss.backward()
+    
+    # 6. Update parameters
+    optimizer.step()
+    
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+</code></pre>
+        <p><strong>Step-by-step</strong>:
+            - <code>model.train()</code>: Activates training-specific behaviors (not critical here but good practice).
+            - <code>y_pred = model(X_train)</code>: Computes predictions for all training samples.
+            - <code>loss = loss_fn(...)</code>: Calculates MAE across the batch.
+            - <code>optimizer.zero_grad()</code>: Clears old gradients to avoid accumulation.
+            - <code>loss.backward()</code>: Computes gradients via backpropagation.
+            - <code>optimizer.step()</code>: Updates \( w \) and \( b \) using gradients.</p>
+    </section>
+
+    <section id="evaluation">
+        <h2>15. Model Evaluation</h2>
+        <p>After training, we assess the model on the test set.</p>
+
+        <h3>15.1 Evaluation Mode</h3>
+        <pre><code>model.eval()
+</code></pre>
+        <p><strong>Why?</strong>: Switches the model to inference mode, disabling training-specific features.</p>
+
+        <h3>15.2 Making Predictions</h3>
+        <pre><code>with torch.inference_mode():
+    y_pred = model(X_test)
+</code></pre>
+        <p><strong>Details</strong>: <code>torch.inference_mode()</code> disables gradient computation, saving memory and speeding up inference.</p>
+
+        <h3>15.3 Visualizing Results</h3>
+        <pre><code>import matplotlib.pyplot as plt
+
+plt.scatter(X_train, y_train, c='blue', label='Training Data')
+plt.scatter(X_test, y_test, c='green', label='Test Data')
+plt.scatter(X_test, y_pred, c='red', label='Predictions')
+plt.legend()
+plt.show()
+</code></pre>
+        <p><strong>Interpretation</strong>: If red points overlap green points, the model accurately learned the linear relationship.</p>
+    </section>
+
+    <section id="full-example-1">
+        <h2>16. Full Example</h2>
+        <p>Here’s the complete code combining all components.</p>
+        <pre><code>import numpy as np
+import torch
+from torch import nn
+from torch.utils.data import TensorDataset, DataLoader
+import matplotlib.pyplot as plt
+
+# 1. Data Preparation
+np.random.seed(42)
+X = np.arange(1, 1000)
+y = 3 * X + 7
+X, y = torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
+X_train, X_test = X[:800].unsqueeze(1), X[800:].unsqueeze(1)
+y_train, y_test = y[:800].unsqueeze(1), y[800:].unsqueeze(1)
+
+# 2. Data Loading
+train_dataset = TensorDataset(X_train, y_train)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+# 3. Model Definition
+class LinearRegressionModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.weights = nn.Parameter(torch.randn(1, dtype=torch.float32))
+        self.bias = nn.Parameter(torch.randn(1, dtype=torch.float32))
+    def forward(self, x):
+        return self.weights * x + self.bias
+
+model = LinearRegressionModel()
+loss_fn = nn.L1Loss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+
+# 4. Training Loop
+epochs = 10000
+for epoch in range(epochs):
+    model.train()
+    for X_batch, y_batch in train_loader:
+        y_pred = model(X_batch)
+        loss = loss_fn(y_pred, y_batch)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+
+# 5. Evaluation
+model.eval()
+with torch.inference_mode():
+    y_pred = model(X_test)
+
+# 6. Visualization
+plt.scatter(X_train, y_train, c='blue', label='Training Data')
+plt.scatter(X_test, y_test, c='green', label='Test Data')
+plt.scatter(X_test, y_pred, c='red', label='Predictions')
+plt.legend()
+plt.show()
+</code></pre>
+        <p>This code trains a linear regression model to predict \( y = 3x + 7 \), demonstrating all concepts in action.</p>
+<div class="center-figure">
+    <img src="assets/pytorch/linear.png" alt="linear regression results">
+    <figcaption>
+        Figure 2. Results
+    </figcaption>
+</div>
+    </section>
+   <section id="classification-intro">
+<p>Now that we've seen how to solve a linear regression problem using PyTorch—creating a synthetic dataset, building a simple perceptron, and performing regression—let’s move on to binary classification. We'll start by creating a new dataset and then implement the classification model. If you've gone through the previous posts, this will help solidify your understanding and give you a clearer picture of how everything fits together.</p>
+        <h2>17. Introduction to Binary Classification</h2>
+        <p>In this section, we'll build a binary classification model using PyTorch. Binary classification involves predicting one of two classes (e.g., 0 or 1). We'll use a synthetic dataset of two interleaving circles, which a linear model can't separate effectively. This will lead us to introduce non-linearity into our model.</p>
+    </section>
+
+    <section id="data-generation">
+        <h2>18. Data Generation</h2>
+        <p>We'll use scikit-learn's <code>make_circles</code> to create a dataset of two circles, one inside the other.</p>
+        <pre><code>import sklearn
+from sklearn.datasets import make_circles
+
+n_samples = 1000
+X, y = make_circles(n_samples, noise=0.05, random_state=42)
+print(X.shape, y.shape)  # (1000, 2), (1000,)</code></pre>
+        <p><strong>Explanation</strong>: 
+            - <code>X</code>: 1000 points, each with 2 features (x and y coordinates).
+            - <code>y</code>: Labels (0 or 1) indicating which circle each point belongs to.
+            - <code>noise=0.05</code>: Adds slight randomness to make the data more realistic.
+            - <code>random_state=42</code>: Ensures reproducibility.
+        </p>
+        <p><strong>Visualization</strong>:</p>
+        <pre><code>import matplotlib.pyplot as plt
+X1, X2 = X[:, 0], X[:, 1]
+plt.figure(figsize=(5, 5))
+plt.scatter(X1, X2, c=y)
+plt.show()</code></pre>
+<div class="center-figure">
+    <img src="assets/pytorch/binary.png" alt="Binary classification data">
+    <figcaption>
+        Figure 1. This plot shows two circles: one class inside, the other outside. A linear model can't separate them well, which is why we'll need non-linearity. 
+    </figcaption>
+</div>
+        <p></p>
+    </section>
+
+    <section id="data-preparation-2">
+        <h2>19. Data Preparation</h2>
+        <p>Convert the data to PyTorch tensors and split it into training and test sets.</p>
+        <h3>19.1 Converting to Tensors</h3>
+        <pre><code>import torch
+device = "cuda" if torch.cuda.is_available() else "cpu"
+X = torch.from_numpy(X).type(torch.float).to(device)
+y = torch.from_numpy(y).type(torch.float).to(device)</code></pre>
+        <p><strong>Explanation</strong>: 
+            - <code>torch.from_numpy()</code>: Converts NumPy arrays to PyTorch tensors.
+            - <code>.type(torch.float)</code>: Ensures the data is in float32 format.
+            - <code>.to(device)</code>: Moves tensors to GPU if available, otherwise CPU.
+        </p>
+        <h3>19.2 Splitting the Data</h3>
+        <pre><code>from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)</code></pre>
+        <p><strong>Explanation</strong>: 
+            - Splits data into 80% training (800 samples) and 20% testing (200 samples).
+            - <code>random_state=42</code>: Ensures consistent splits across runs.
+        </p>
+    </section>
+
+    <section id="initial-model">
+        <h2>20. Initial Model Definition</h2>
+        <p>We'll start with a simple neural network using only linear layers.</p>
+        <pre><code>from torch import nn
+class Classification_model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer_1 = nn.Linear(in_features=2, out_features=5)
+        self.layer_2 = nn.Linear(in_features=5, out_features=10)
+        self.layer_3 = nn.Linear(in_features=10, out_features=1)
+    def forward(self, x):
+        z = self.layer_1(x)
+        z = self.layer_2(z)
+        z = self.layer_3(z)
+        return z
+Model = Classification_model().to(device)</code></pre>
+        <p><strong>Explanation</strong>:
+            - The model has three linear layers: 2→5, 5→10, 10→1.
+            - No activation functions are used yet, making it a linear model.
+            - Output is a single value (logit) per sample.
+        </p>
+    </section>
+
+    <section id="loss-optimizer-1">
+        <h2>21. Loss Function and Optimizer</h2>
+        <p>Define the tools for training: loss function and optimizer.</p>
+        <pre><code>loss_fn = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.001)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>BCEWithLogitsLoss</code>: Combines sigmoid activation and binary cross-entropy loss for stability.
+            - <code>SGD</code>: Stochastic Gradient Descent optimizer with learning rate 0.001.
+        </p>
+    </section>
+
+    <section id="training-linear">
+        <h2>22. Training the Linear Model</h2>
+        <p>We'll train the model and observe its performance.</p>
+        <pre><code>torch.manual_seed(42)
+epochs = 100
+for epoch in range(epochs):
+    Model.train()
+    y_logits = Model(X_train).squeeze()
+    y_pred = torch.round(torch.sigmoid(y_logits))
+    loss = loss_fn(y_logits, y_train)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+</code></pre>
+        <p><strong>Observation</strong>: 
+            - Accuracy stays around 50%, as the model can't learn the non-linear pattern with only linear layers.
+        </p>
+    </section>
+
+    <section id="improved-model">
+        <h2>23. Improved Model with Non-Linearity</h2>
+        <p>Introduce ReLU activation to handle non-linear data.</p>
+        <pre><code>class Better_Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer_1 = nn.Linear(2, 10)
+        self.layer_2 = nn.Linear(10, 10)
+        self.layer_3 = nn.Linear(10, 1)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        z = self.relu(self.layer_1(x))
+        z = self.relu(self.layer_2(z))
+        z = self.layer_3(z)
+        return z
+Model = Better_Model().to(device)</code></pre>
+        <p><strong>Explanation</strong>:
+            - Added <code>self.relu = nn.ReLU()</code>: Applies ReLU after the first two layers.
+            - ReLU (Rectified Linear Unit): Outputs the input if positive, else 0, introducing non-linearity.
+        </p>
+    </section>
+
+    <section id="full-example-2">
+        <h2>24. Full Classification Example</h2>
+        <p>Here’s the complete code for the improved model.</p>
+        <pre><code>import torch
+from torch import nn
+from sklearn.datasets import make_circles
+from sklearn.model_selection import train_test_split
+
+# Data Generation
+n_samples = 1000
+X, y = make_circles(n_samples, noise=0.05, random_state=42)
+X = torch.from_numpy(X).type(torch.float).to(device)
+y = torch.from_numpy(y).type(torch.float).to(device)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model Definition
+class Better_Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer_1 = nn.Linear(2, 10)
+        self.layer_2 = nn.Linear(10, 10)
+        self.layer_3 = nn.Linear(10, 1)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        z = self.relu(self.layer_1(x))
+        z = self.relu(self.layer_2(z))
+        z = self.layer_3(z)
+        return z
+Model = Better_Model().to(device)
+
+# Loss and Optimizer
+loss_fn = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.01)
+
+# Training Loop
+torch.manual_seed(42)
+epochs = 10000
+for epoch in range(epochs):
+    Model.train()
+    y_logits = Model(X_train).squeeze()
+    y_pred = torch.round(torch.sigmoid(y_logits))
+    loss = loss_fn(y_logits, y_train)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+</code></pre>
+        <p>This code demonstrates how non-linearity improves model performance on non-linear data.</p>
+    </section>
+   <section id="cnn-intro">
+        <h2>25. Introduction to CNNs for Computer Vision</h2>
+        <p>Now we’re diving into a computer vision problem using Convolutional Neural Networks (CNNs) in PyTorch. CNNs are specialized neural networks designed to process structured grid-like data, such as images. They excel at tasks like image classification, where the goal is to assign a label (e.g., "pizza", "steak", or "sushi") to an image.</p>
+        <p>In this section, we’ll classify images from a dataset containing three classes: pizza, steak, and sushi. We’ll download the data, preprocess it, build a CNN model, train it, and evaluate its performance. Let’s start by downloading the dataset.</p>
+    </section>
+
+    <section id="data-download">
+        <h2>26. Downloading the Dataset</h2>
+        <h3>26.1 Purpose</h3>
+        <p>We need a dataset of images to train our CNN. We’ll use a small dataset of pizza, steak, and sushi images, organized into training and test directories.</p>
+        <h3>26.2 Code</h3>
+        <pre><code>!wget -q https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip -O pizza_steak_sushi.zip
+!unzip -q pizza_steak_sushi.zip -d ./data/</code></pre>
+        <h3>26.3 Explanation</h3>
+        <p>
+            - <code>!wget -q</code>: Downloads the dataset zip file silently from a GitHub URL.
+            - <code>-O pizza_steak_sushi.zip</code>: Names the downloaded file.
+            - <code>!unzip -q</code>: Extracts the zip file into the <code>./data/</code> directory.
+            - The extracted data has two folders: <code>train</code> (training images) and <code>test</code> (test images), each containing subfolders named "pizza", "steak", and "sushi".
+        </p>
+        <p><strong>Why this matters</strong>: The dataset is small, making it ideal for learning, and its folder structure is compatible with PyTorch’s data loading utilities.</p>
+    </section>
+
+    <section id="data-preparation-3">
+        <h2>27. Data Preparation</h2>
+        <p>Preparing image data involves transforming images into a format suitable for the CNN and loading them efficiently.</p>
+        <h3>27.1 Defining Transformations</h3>
+        <pre><code>from torchvision import transforms
+data_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>transforms.Compose</code>: Combines multiple transformations into a single pipeline.
+            - <code>Resize((224, 224))</code>: Resizes all images to 224x224 pixels, a common size for CNN inputs.
+            - <code>ToTensor()</code>: Converts images (PIL or NumPy format) to PyTorch tensors with values in [0, 1] and shape [channels, height, width] (e.g., [3, 224, 224] for RGB).
+            - <code>Normalize</code>: Scales pixel values to [-1, 1] using the formula: <code>(x - mean) / std</code>. Here, <code>mean=[0.5, 0.5, 0.5]</code> and <code>std=[0.5, 0.5, 0.5]</code> are applied per RGB channel.
+            - <strong>Why normalize?</strong> It stabilizes training by ensuring consistent input ranges.
+        </p>
+        <h3>27.2 Loading Datasets</h3>
+        <pre><code>from torchvision import datasets
+train_dir = "/content/data/train"
+test_dir = "/content/data/test"
+train_data = datasets.ImageFolder(root=train_dir, transform=data_transforms)
+test_data = datasets.ImageFolder(root=test_dir, transform=data_transforms)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>ImageFolder</code>: Loads images from a directory where each subdirectory represents a class (e.g., "pizza", "steak", "sushi").
+            - <code>root</code>: Specifies the directory path.
+            - <code>transform</code>: Applies the defined transformations to each image.
+            - The dataset automatically assigns labels (0 for pizza, 1 for steak, 2 for sushi) based on folder names.
+        </p>
+        <h3>27.3 Creating DataLoaders</h3>
+        <pre><code>from torch.utils.data import DataLoader
+train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=32, shuffle=True)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>DataLoader</code>: Batches the dataset for efficient training.
+            - <code>batch_size=32</code>: Processes 32 images at a time, balancing memory and speed.
+            - <code>shuffle=True</code>: Randomizes the order of images in each epoch to prevent learning from data order.
+            - Each batch is a tensor of shape [32, 3, 224, 224] for images and [32] for labels.
+        </p>
+    </section>
+
+    <section id="torchvision">
+        <h2>28. Understanding Torchvision and CNN Concepts</h2>
+        <p>Before building the model, let’s explore <code>torchvision</code> and key CNN components.</p>
+        <h3>28.1 What is Torchvision?</h3>
+        <p><code>torchvision</code> is a PyTorch library for computer vision tasks, providing tools for:</p>
+        <ul>
+            <li><strong>Datasets</strong>: Pre-built datasets like <code>ImageFolder</code> or CIFAR-10.</li>
+            <li><strong>Transforms</strong>: Image preprocessing functions like <code>Resize</code>, <code>Normalize</code>.</li>
+            <li><strong>Models</strong>: Pre-trained models like ResNet, VGG for transfer learning.</li>
+            <li><strong>Utilities</strong>: Functions for loading and visualizing images.</li>
+        </ul>
+        <p>In this guide, we use <code>torchvision.datasets</code> for loading data and <code>torchvision.transforms</code> for preprocessing.</p>
+        <h3>28.2 CNN Layers Explained</h3>
+        <p>CNNs process images using layers that extract features (e.g., edges, textures) and classify them. Key layers include:</p>
+        <ul>
+            <li><strong>Convolutional Layer (<code>nn.Conv2d</code>)</strong>:
+                - Applies filters to detect patterns (e.g., edges).
+                - Parameters:
+                    - <code>in_channels</code>: Number of input channels (e.g., 3 for RGB).
+                    - <code>out_channels</code>: Number of filters (output channels).
+                    - <code>kernel_size</code>: Size of the filter (e.g., 3x3).
+                    - <code>stride</code>: Step size of the filter movement.
+                    - <code>padding</code>: Adds zeros around the input to preserve size.
+                - Example: A 3x3 filter with padding=1 on a 224x224 image keeps the output size at 224x224.
+            </li>
+            <li><strong>ReLU Activation (<code>nn.ReLU</code>)</strong>:
+                - Applies <code>max(0, x)</code> to introduce non-linearity, allowing the model to learn complex patterns.
+            </li>
+            <li><strong>Max Pooling (<code>nn.MaxPool2d</code>)</strong>:
+                - Reduces spatial dimensions by taking the maximum value in a region (e.g., 2x2).
+                - <code>kernel_size=2</code>: Halves the height and width (e.g., 224x224 → 112x112).
+                - Helps reduce computation and prevent overfitting.
+            </li>
+            <li><strong>Flatten (<code>nn.Flatten</code>)</strong>:
+                - Converts 3D feature maps (e.g., [256, 14, 14]) into a 1D vector (e.g., 256*14*14=50176) for fully connected layers.
+            </li>
+            <li><strong>Linear Layer (<code>nn.Linear</code>)</strong>:
+                - Fully connected layer that maps features to output classes (e.g., 512→3 for three classes).
+            </li>
+            <li><strong>Dropout (<code>nn.Dropout</code>)</strong>:
+                - Randomly sets a fraction of inputs to zero during training to prevent overfitting.
+                - Example: <code>Dropout(0.2)</code> drops 20% of neurons.
+            </li>
+        </ul>
+        <p><strong>Why CNNs?</strong> Unlike regular neural networks, CNNs use convolutional layers to exploit spatial relationships in images, making them efficient and effective for vision tasks.</p>
+    </section>
+
+    <section id="model-definition-2">
+        <h2>29. Model Definition</h2>
+        <p>We’ll define a CNN to classify images into three classes: pizza, steak, and sushi.</p>
+        <h3>29.1 Code</h3>
+        <pre><code>import torch
+from torch import nn
+class CNN_Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1),  # 32x224x224
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),  # 32x112x112
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),  # 64x112x112
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),  # 64x56x56
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),  # 128x56x56
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),  # 128x28x28
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1),  # 256x28x28
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),  # 256x14x14
+            nn.Flatten(),  # 256*14*14=50176
+            nn.Linear(256*14*14, 256),
+            nn.ReLU(),
+            nn.Linear(256, 512),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(512, 3)  # 3 classes
+        )
+    def forward(self, x):
+        return self.model(x)
+Model = CNN_Model().to(device)</code></pre>
+        <h3>29.2 Explanation</h3>
+        <p>
+            - <strong>Architecture</strong>:
+                - Four convolutional blocks, each with <code>Conv2d</code>, <code>ReLU</code>, and <code>MaxPool2d</code>.
+                - Convolution increases the number of channels (3→32→64→128→256) to learn richer features.
+                - Max pooling reduces spatial dimensions (224→112→56→28→14) to manage computation.
+                - <code>Flatten</code> prepares the output for fully connected layers.
+                - Three linear layers (50176→256→512→3) reduce features to class scores, with <code>ReLU</code> for non-linearity and <code>Dropout</code> for regularization.
+            - <strong>Output</strong>: A tensor of shape [batch_size, 3], where each value is a score for one class.
+            - <code>.to(device)</code>: Ensures the model runs on GPU if available.
+        </p>
+    </section>
+
+    <section id="loss-optimizer-2">
+        <h2>30. Loss Function and Optimizer</h2>
+        <h3>30.1 Code</h3>
+        <pre><code>loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.01)</code></pre>
+        <h3>30.2 Explanation</h3>
+        <p>
+            - <code>CrossEntropyLoss</code>: Combines log-softmax and negative log-likelihood loss, suitable for multi-class classification. Expects raw scores (logits) and class indices as input.
+            - <code>SGD</code>: Stochastic Gradient Descent optimizer updates model parameters using gradients, with a learning rate of 0.01.
+            - <code>params=Model.parameters()</code>: Includes all trainable weights and biases in the CNN.
+        </p>
+    </section>
+
+    <section id="training-loop-1">
+        <h2>31. Training Loop</h2>
+        <p>We implement a loop to train and evaluate the model over multiple epochs, tracking loss and accuracy.</p>
+        <h3>31.1 Code</h3>
+        <pre><code>def training_loop(model, train_loader, test_loader, optimizer, loss_fn, epochs):
+    for epoch in range(epochs):
+        model.train()
+        train_loss, train_correct = 0, 0
+        for X, y in train_loader:
+            X, y = X.to(device), y.to(device)
+            y_pred = model(X)
+            loss = loss_fn(y_pred, y)
+            train_loss += loss.item()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_correct += (y_pred.argmax(1) == y).sum().item()
+        train_accuracy = train_correct / len(train_loader.dataset) * 100
+        model.eval()
+        test_loss, test_correct = 0, 0
+        with torch.no_grad():
+            for X, y in test_loader:
+                X, y = X.to(device), y.to(device)
+                test_pred = model(X)
+                loss = loss_fn(test_pred, y)
+                test_loss += loss.item()
+                test_correct += (test_pred.argmax(1) == y).sum().item()
+            test_accuracy = test_correct / len(test_loader.dataset) * 100
+        print(f"Epoch {epoch} | Train Loss: {train_loss:.4f} | Train Acc: {train_accuracy:.2f}% | Test Loss: {test_loss:.4f} | Test Acc: {test_accuracy:.2f}%")
+training_loop(Model, train_loader, test_loader, optimizer, loss_fn, epochs=10)</code></pre>
+        <h3>17.2 Explanation</h3>
+        <p>
+            - <strong>Training Phase</strong>:
+                - <code>model.train()</code>: Enables training mode (activates dropout).
+                - <code>X, y = X.to(device), y.to(device)</code>: Moves data to the correct device.
+                - <code>y_pred = model(X)</code>: Computes logits for the batch.
+                - <code>loss = loss_fn(y_pred, y)</code>: Calculates the loss.
+                - <code>optimizer.zero_grad()</code>: Clears old gradients.
+                - <code>loss.backward()</code>: Computes gradients via backpropagation.
+                - <code>optimizer.step()</code>: Updates weights.
+                - <code>y_pred.argmax(1)</code>: Selects the class with the highest score for accuracy calculation.
+            - <strong>Evaluation Phase</strong>:
+                - <code>model.eval()</code>: Disables training-specific behaviors.
+                - <code>with torch.no_grad()</code>: Disables gradient computation for efficiency.
+                - Computes test loss and accuracy similarly.
+            - <strong>Metrics</strong>:
+                - <code>train_loss</code>: Sum of batch losses (not averaged).
+                - <code>train_accuracy</code>: Percentage of correct predictions.
+                - Similar for test metrics.
+        </p>
+        <h3>31.3 Output Analysis</h3>
+        <p>Running the training loop for 10 epochs produces results like:</p>
+        <pre><code>Epoch 0 | Train Loss: 8.7877 | Train Acc: 32.00% | Test Loss: 3.2875 | Test Acc: 41.33%
+Epoch 1 | Train Loss: 8.8139 | Train Acc: 32.00% | Test Loss: 3.2948 | Test Acc: 41.33%
+...
+Epoch 9 | Train Loss: 8.7831 | Train Acc: 35.56% | Test Loss: 3.3068 | Test Acc: 25.33%</code></pre>
+        <p><strong>Observations</strong>:
+            - Train accuracy hovers around 32-35%, test accuracy varies between 25-41%.
+            - The model struggles to learn effectively, likely due to:
+                - Small dataset size (only a few hundred images).
+                - Insufficient training epochs (10 is too few for a CNN).
+                - Suboptimal learning rate or optimizer (SGD may need tuning).
+                - Lack of data augmentation (e.g., random flips, rotations) to improve generalization.
+            - The high loss values (e.g., ~8 for training, ~3 for testing) indicate the model hasn’t converged.
+        </p>
+        <p><strong>Improvement Ideas</strong>:
+            - Increase epochs (e.g., 50-100).
+            - Use Adam optimizer for faster convergence.
+            - Add data augmentation in <code>data_transforms</code> (e.g., <code>transforms.RandomHorizontalFlip()</code>).
+            - Consider transfer learning with a pre-trained model (e.g., ResNet from <code>torchvision.models</code>).
+        </p>
+    </section>
+
+    <section id="full-example-3">
+        <h2>32. Full Code Example</h2>
+        <p>Here’s the complete code to download, prepare, and train the CNN for image classification.</p>
+        <pre><code>import torch
+from torch import nn
+import torchvision
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# Data Downloading
+!wget -q https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip -O pizza_steak_sushi.zip
+!unzip -q pizza_steak_sushi.zip -d ./data/
+
+# Data Preparation
+train_dir = "/content/data/train"
+test_dir = "/content/data/test"
+data_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
+train_data = datasets.ImageFolder(root=train_dir, transform=data_transforms)
+test_data = datasets.ImageFolder(root=test_dir, transform=data_transforms)
+train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=32, shuffle=True)
+
+# Device Setup
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Model Definition
+class CNN_Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Flatten(),
+            nn.Linear(256*14*14, 256),
+            nn.ReLU(),
+            nn.Linear(256, 512),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(512, 3)
+        )
+    def forward(self, x):
+        return self.model(x)
+Model = CNN_Model().to(device)
+
+# Loss and Optimizer
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.01)
+
+# Training Loop
+def training_loop(model, train_loader, test_loader, optimizer, loss_fn, epochs):
+    for epoch in range(epochs):
+        model.train()
+        train_loss, train_correct = 0, 0
+        for X, y in train_loader:
+            X, y = X.to(device), y.to(device)
+            y_pred = model(X)
+            loss = loss_fn(y_pred, y)
+            train_loss += loss.item()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_correct += (y_pred.argmax(1) == y).sum().item()
+        train_accuracy = train_correct / len(train_loader.dataset) * 100
+        model.eval()
+        test_loss, test_correct = 0, 0
+        with torch.no_grad():
+            for X, y in test_loader:
+                X, y = X.to(device), y.to(device)
+                test_pred = model(X)
+                loss = loss_fn(test_pred, y)
+                test_loss += loss.item()
+                test_correct += (test_pred.argmax(1) == y).sum().item()
+            test_accuracy = test_correct / len(test_loader.dataset) * 100
+        print(f"Epoch {epoch} | Train Loss: {train_loss:.4f} | Train Acc: {train_accuracy:.2f}% | Test Loss: {test_loss:.4f} | Test Acc: {test_accuracy:.2f}%")
+training_loop(Model, train_loader, test_loader, optimizer, loss_fn, epochs=10)
+</code></pre>
+        <p>This code downloads the pizza, steak, and sushi dataset, preprocesses it, defines a CNN with convolutional and fully connected layers, and trains it to classify images. The output shows the model’s performance, which can be improved with further tuning.</p>
+    </section>
+
+   <section id="transfer-learning-intro">
+        <h2>33. Introduction to Transfer Learning with CNNs</h2>
+        <p>In this section, we’ll tackle an image classification problem using transfer learning with PyTorch. Transfer learning involves using a pre-trained model (trained on a large dataset like ImageNet) and fine-tuning it for a specific task. This is especially useful for small datasets, as it leverages learned features (e.g., edges, textures) to achieve high performance with less training data.</p>
+        <p>We’ll use the EfficientNet-B0 model from <code>torchvision.models</code> to classify images of pizza, steak, and sushi from a small dataset. We’ll download the data, preprocess it, modify the pre-trained model, train it, and analyze the results. Let’s begin by setting up the model.</p>
+    </section>
+
+    <section id="model-setup">
+        <h2>34. Setting Up the Pre-Trained Model</h2>
+        <p>We’ll use EfficientNet-B0, a state-of-the-art CNN, and inspect its structure.</p>
+        <h3>34.1 Loading EfficientNet-B0</h3>
+        <pre><code>import torch
+import torchvision
+from torchvision import models
+weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT
+Model = torchvision.models.efficientnet_b0(weights=weights)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>EfficientNet_B0_Weights.DEFAULT</code>: Provides pre-trained weights from ImageNet, optimized for general image recognition.
+            - <code>efficientnet_b0(weights=weights)</code>: Loads the EfficientNet-B0 model with pre-trained weights.
+            - The model outputs 1000 class scores (for ImageNet’s 1000 classes), which we’ll modify for our 3-class task (pizza, steak, sushi).
+        </p>
+        <h3>34.2 Inspecting the Model with torchinfo</h3>
+        <pre><code>!pip install -q torchinfo
+from torchinfo import summary
+summary(
+    model=Model,
+    input_size=(1, 3, 224, 224),
+    col_names=["input_size", "output_size", "num_params", "trainable"]
+)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>torchinfo.summary</code>: Displays the model’s architecture, including layer types, input/output shapes, parameter counts, and trainability.
+            - <code>input_size=(1, 3, 224, 224)</code>: Simulates a single RGB image (3 channels, 224x224 pixels).
+            - <strong>Output</strong>: Shows layers like <code>Conv2d</code>, <code>MBConv</code> (Mobile Inverted Bottleneck Convolution, a key EfficientNet component), <code>BatchNorm2d</code>, <code>SiLU</code> (activation function), and a final <code>Linear</code> layer for 1000 classes.
+            - Total parameters: ~5.3M, all trainable initially.
+        </p>
+    </section>
+
+    <section id="transfer-learning-concepts">
+        <h2>35. Understanding Transfer Learning and EfficientNet</h2>
+        <p>Before modifying the model, let’s explore transfer learning and EfficientNet’s components.</p>
+        <h3>35.1 What is Transfer Learning?</h3>
+        <p>Transfer learning uses a pre-trained model’s weights as a starting point, fine-tuning it for a new task. Benefits include:</p>
+        <ul>
+            <li><strong>Faster Training</strong>: Leverages learned features, reducing training time.</li>
+            <li><strong>Better Performance</strong>: Works well with small datasets, avoiding overfitting.</li>
+            <li><strong>Generalization</strong>: Pre-trained models capture universal features (e.g., edges, shapes).</li>
+        </ul>
+        <p>In this case, EfficientNet-B0 is pre-trained on ImageNet, so we’ll freeze most layers and retrain the classifier for our 3 classes.</p>
+        <h3>35.2 What is EfficientNet?</h3>
+        <p>EfficientNet is a family of CNNs designed for efficiency, balancing accuracy and computational cost. EfficientNet-B0 is the smallest variant, using:</p>
+        <ul>
+            <li><strong>MBConv Blocks</strong>: Combine depthwise separable convolutions, batch normalization, and SiLU activation for efficiency.</li>
+            <li><strong>Scaling</strong>: Balances depth, width, and resolution for optimal performance.</li>
+            <li><strong>Global Average Pooling</strong>: Reduces spatial dimensions before the classifier.</li>
+        </ul>
+        <h3>35.3 Key Layers in EfficientNet</h3>
+        <ul>
+            <li><strong>Conv2d</strong>: Applies convolution to extract features, with parameters like <code>in_channels</code>, <code>out_channels</code>, <code>kernel_size</code>.</li>
+            <li><strong>BatchNorm2d</strong>: Normalizes layer outputs to stabilize training.</li>
+            <li><strong>SiLU (Swish)</strong>: Activation function (<code>x * sigmoid(x)</code>), smoother than ReLU.</li>
+            <li><strong>AdaptiveAvgPool2d</strong>: Reduces feature maps to a fixed size (e.g., 7x7→1x1) for the classifier.</li>
+            <li><strong>Dropout</strong>: Randomly drops neurons during training to prevent overfitting.</li>
+            <li><strong>Linear</strong>: Final layer mapping features to class scores.</li>
+        </ul>
+        <h3>35.4 Torchvision’s Role</h3>
+        <p><code>torchvision</code> provides pre-trained models like EfficientNet, datasets, and transforms. Here, we use:</p>
+        <ul>
+            <li><code>torchvision.models</code>: For loading EfficientNet-B0.</li>
+            <li><code>torchvision.transforms</code>: For preprocessing images.</li>
+            <li><code>torchvision.datasets</code>: For loading custom datasets.</li>
+        </ul>
+    </section>
+
+    <section id="freeze-layers">
+        <h2>36. Freezing Feature Extractor Layers</h2>
+        <p>We freeze the pre-trained feature extractor to avoid retraining its weights.</p>
+        <h3>36.1 Code</h3>
+        <pre><code>for param in Model.features.parameters():
+    param.requires_grad = False</code></pre>
+        <h3>36.2 Explanation</h3>
+        <p>
+            - <code>Model.features</code>: The convolutional layers of EfficientNet-B0 that extract features.
+            - <code>requires_grad = False</code>: Disables gradient computation for these parameters, freezing them during training.
+            - <strong>Why freeze?</strong> The pre-trained weights are already optimized for general features, so we focus training on the classifier.
+        </p>
+        <h3>36.3 Verify Freezing</h3>
+        <pre><code>summary(
+    model=Model,
+    input_size=(1, 3, 224, 224),
+    col_names=["input_size", "output_size", "num_params", "trainable"]
+)</code></pre>
+        <p><strong>Explanation</strong>:
+            - The updated summary shows the <code>features</code> layers as non-trainable (4M parameters frozen).
+            - The <code>classifier</code> layer (1.3M parameters) remains trainable.
+            - Total trainable parameters: ~1.3M, reducing training cost.
+        </p>
+    </section>
+
+    <section id="modify-classifier">
+        <h2>37. Modifying the Classifier</h2>
+        <p>We replace the classifier to output 3 classes instead of 1000.</p>
+        <h3>37.1 Code</h3>
+        <pre><code>Model.classifier = nn.Sequential(
+    nn.Dropout(p=0.2, inplace=True),
+    nn.Linear(in_features=1280, out_features=3)
+)</code></pre>
+        <h3>37.2 Explanation</h3>
+        <p>
+            - <code>Model.classifier</code>: The final layer(s) of EfficientNet-B0.
+            - <code>Dropout(p=0.2)</code>: Drops 20% of neurons to prevent overfitting.
+            - <code>Linear(1280, 3)</code>: Maps 1280 features to 3 class scores (pizza, steak, sushi).
+            - <code>inplace=True</code>: Modifies the tensor in-place for efficiency.
+        </p>
+    </section>
+
+    <section id="device-setup">
+        <h2>38. Device Setup</h2>
+        <p>We configure the device for computation.</p>
+        <h3>38.1 Code</h3>
+        <pre><code>device = "cuda" if torch.cuda.is_available() else "cpu"
+Model = Model.to(device)</code></pre>
+        <h3>38.2 Explanation</h3>
+        <p>
+            - <code>torch.cuda.is_available()</code>: Checks for a GPU.
+            - <code>.to(device)</code>: Moves the model to GPU (if available) or CPU.
+        </p>
+    </section>
+
+    <section id="data-preparation-4">
+        <h2>39. Data Preparation</h2>
+        <p>We download and preprocess the pizza, steak, and sushi dataset.</p>
+        <h3>39.1 Downloading the Dataset</h3>
+        <pre><code>!wget -q https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip -O pizza_steak_sushi.zip
+!unzip -q pizza_steak_sushi.zip -d ./data/</code></pre>
+        <p><strong>Explanation</strong>:
+            - Downloads and extracts the dataset into <code>./data/</code>, creating <code>train</code> and <code>test</code> directories with subfolders for each class.
+        </p>
+        <h3>39.2 Defining Transformations</h3>
+        <pre><code>from torchvision import transforms
+data_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>Resize((224, 224))</code>: Ensures images match EfficientNet’s expected input size.
+            - <code>ToTensor()</code>: Converts images to tensors (3x224x224).
+            - <code>Normalize</code>: Scales pixel values to [-1, 1] for compatibility with pre-trained weights.
+        </p>
+        <h3>39.3 Loading Datasets</h3>
+        <pre><code>from torchvision import datasets
+train_dir = "/content/data/train"
+test_dir = "/content/data/test"
+train_data = datasets.ImageFolder(root=train_dir, transform=data_transforms)
+test_data = datasets.ImageFolder(root=test_dir, transform=data_transforms)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>ImageFolder</code>: Loads images, assigning labels based on folder names (0: pizza, 1: steak, 2: sushi).
+            - Applies <code>data_transforms</code> to each image.
+        </p>
+        <h3>39.4 Creating DataLoaders</h3>
+        <pre><code>from torch.utils.data import DataLoader
+train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=32, shuffle=False)</code></pre>
+        <p><strong>Explanation</strong>:
+            - <code>batch_size=32</code>: Processes 32 images per batch.
+            - <code>shuffle=True</code> for training: Randomizes data order to improve generalization.
+            - <code>shuffle=False</code> for testing: Maintains order for consistent evaluation.
+        </p>
+    </section>
+
+    <section id="loss-optimizer-3">
+        <h2>40. Loss Function and Optimizer</h2>
+        <p>We set up the loss function and optimizer for training.</p>
+        <h3>40.1 Code</h3>
+        <pre><code>loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.1)</code></pre>
+        <h3>40.2 Explanation</h3>
+        <p>
+            - <code>CrossEntropyLoss</code>: Suitable for multi-class classification, expects logits as input.
+            - <code>SGD</code>: Updates the trainable parameters (classifier only) with a learning rate of 0.1, relatively high due to the small number of trainable parameters.
+        </p>
+    </section>
+
+    <section id="training-loop-2">
+        <h2>41. Training Loop</h2>
+        <p>We implement a training loop to fine-tune the classifier and evaluate performance.</p>
+        <h3>41.1 Code</h3>
+        <pre><code>def training_loop(model, train_loader, test_loader, loss_fn, optimizer, epochs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    epoch_values = []
+    train_loss_values = []
+    test_loss_values = []
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0
+        train_correct = 0
+        epoch_values.append(epoch)
+        for X, y in train_loader:
+            X, y = X.to(device), y.to(device)
+            train_pred = model(X)
+            loss = loss_fn(train_pred, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+            train_correct += (train_pred.argmax(1) == y).sum().item()
+        train_accuracy = train_correct / len(train_loader.dataset) * 100
+        avg_train_loss = train_loss / len(train_loader)
+        model.eval()
+        test_loss = 0
+        test_correct = 0
+        with torch.no_grad():
+            for X, y in test_loader:
+                X, y = X.to(device), y.to(device)
+                test_pred = model(X)
+                loss = loss_fn(test_pred, y)
+                test_loss += loss.item()
+                test_correct += (test_pred.argmax(1) == y).sum().item()
+        test_accuracy = test_correct / len(test_loader.dataset) * 100
+        avg_test_loss = test_loss / len(test_loader)
+        train_loss_values.append(avg_train_loss)
+        test_loss_values.append(avg_test_loss)
+        print(
+            f"Epoch: {epoch+1}/{epochs} | "
+            f"Train Loss: {avg_train_loss:.4f} | Train Accuracy: {train_accuracy:.2f}% | "
+            f"Test Loss: {avg_test_loss:.4f} | Test Accuracy: {test_accuracy:.2f}%"
+        )
+    return epoch_values, train_loss_values, test_loss_values
+epochs = 15
+epoch_values, train_loss_values, test_loss_values = training_loop(
+    Model, train_loader, test_loader, loss_fn, optimizer, epochs
+)</code></pre>
+        <h3>41.2 Explanation</h3>
+        <p>
+            - <strong>Training Phase</strong>:
+                - <code>model.train()</code>: Enables dropout and batch normalization.
+                - <code>X, y = X.to(device), y.to(device)</code>: Moves data to the device.
+                - <code>train_pred = model(X)</code>: Computes logits.
+                - <code>loss = loss_fn(train_pred, y)</code>: Calculates loss.
+                - <code>optimizer.zero_grad()</code>: Clears gradients.
+                - <code>loss.backward()</code>: Computes gradients for trainable parameters.
+                - <code>optimizer.step()</code>: Updates the classifier weights.
+                - Tracks loss and accuracy per batch.
+            - <strong>Evaluation Phase</strong>:
+                - <code>model.eval()</code>: Disables dropout and batch normalization.
+                - <code>with torch.no_grad()</code>: Reduces memory usage by skipping gradient computation.
+                - Computes test loss and accuracy.
+            - <strong>Metrics</strong>:
+                - <code>avg_train_loss</code>: Average loss per batch.
+                - <code>train_accuracy</code>: Percentage of correct predictions.
+                - Similar for test metrics.
+                - Stores losses for potential plotting.
+        </p>
+        <h3>41.3 Output Analysis</h3>
+        <p>The training loop runs for 15 epochs, producing results like:</p>
+        <pre><code>Epoch: 1/15 | Train Loss: 0.2891 | Train Accuracy: 96.44% | Test Loss: 0.3756 | Test Accuracy: 85.33%
+Epoch: 2/15 | Train Loss: 0.1980 | Train Accuracy: 94.67% | Test Loss: 0.3436 | Test Accuracy: 86.67%
+...
+Epoch: 15/15 | Train Loss: 0.0880 | Train Accuracy: 97.33% | Test Loss: 0.4387 | Test Accuracy: 93.33%</code></pre>
+        <p><strong>Observations</strong>:
+            - <strong>Train Accuracy</strong>: Starts at 96.44% and fluctuates, reaching 97.33% by epoch 15. High accuracy suggests the model fits the training data well.
+            - <strong>Test Accuracy</strong>: Ranges from 82.67% to 94.67%, stabilizing around 93.33%. This indicates good generalization, thanks to transfer learning.
+            - <strong>Train Loss</strong>: Decreases overall (0.2891→0.0880), showing the classifier is learning.
+            - <strong>Test Loss</strong>: Varies (0.2843–0.6454), with some spikes, possibly due to the small test set or learning rate.
+            - <strong>Why it works</strong>: Pre-trained EfficientNet-B0 provides robust feature extraction, and fine-tuning the classifier adapts it to our task.
+            - <strong>Potential Issues</strong>:
+                - Small dataset size limits performance.
+                - High learning rate (0.1) may cause instability (e.g., test loss spikes).
+                - No data augmentation (e.g., flips, rotations) may limit generalization.
+            - <strong>Improvements</strong>:
+                - Lower the learning rate (e.g., 0.01).
+                - Add data augmentation to <code>data_transforms</code>.
+                - Train for more epochs or unfreeze some feature layers cautiously.
+        </p>
+    </section>
+
+    <section id="full-example-4">
+        <h2>42. Full Code Example</h2>
+        <p>Below is the complete code for transfer learning with EfficientNet-B0.</p>
+        <pre><code>import torch
+from torch import nn
+import torchvision
+from torchvision import transforms, datasets, models
+from torch.utils.data import DataLoader
+!pip install -q torchinfo
+from torchinfo import summary
+
+# Model Setup
+weights = models.EfficientNet_B0_Weights.DEFAULT
+Model = models.efficientnet_b0(weights=weights)
+for param in Model.features.parameters():
+    param.requires_grad = False
+Model.classifier = nn.Sequential(
+    nn.Dropout(p=0.2, inplace=True),
+    nn.Linear(in_features=1280, out_features=3)
+)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+Model = Model.to(device)
+
+# Data Preparation
+!wget -q https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip -O pizza_steak_sushi.zip
+!unzip -q pizza_steak_sushi.zip -d ./data/
+train_dir = "/content/data/train"
+test_dir = "/content/data/test"
+data_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
+train_data = datasets.ImageFolder(root=train_dir, transform=data_transforms)
+test_data = datasets.ImageFolder(root=test_dir, transform=data_transforms)
+train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+
+# Loss and Optimizer
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(params=Model.parameters(), lr=0.1)
+
+# Training Loop
+def training_loop(model, train_loader, test_loader, loss_fn, optimizer, epochs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    epoch_values = []
+    train_loss_values = []
+    test_loss_values = []
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0
+        train_correct = 0
+        epoch_values.append(epoch)
+        for X, y in train_loader:
+            X, y = X.to(device), y.to(device)
+            train_pred = model(X)
+            loss = loss_fn(train_pred, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+            train_correct += (train_pred.argmax(1) == y).sum().item()
+        train_accuracy = train_correct / len(train_loader.dataset) * 100
+        avg_train_loss = train_loss / len(train_loader)
+        model.eval()
+        test_loss = 0
+        test_correct = 0
+        with torch.no_grad():
+            for X, y in test_loader:
+                X, y = X.to(device), y.to(device)
+                test_pred = model(X)
+                loss = loss_fn(test_pred, y)
+                test_loss += loss.item()
+                test_correct += (test_pred.argmax(1) == y).sum().item()
+        test_accuracy = test_correct / len(test_loader.dataset) * 100
+        avg_test_loss = test_loss / len(test_loader)
+        train_loss_values.append(avg_train_loss)
+        test_loss_values.append(avg_test_loss)
+        print(
+            f"Epoch: {epoch+1}/{epochs} | "
+            f"Train Loss: {avg_train_loss:.4f} | Train Accuracy: {train_accuracy:.2f}% | "
+            f"Test Loss: {avg_test_loss:.4f} | Test Accuracy: {test_accuracy:.2f}%"
+        )
+    return epoch_values, train_loss_values, test_loss_values
+epochs = 15
+epoch_values, train_loss_values, test_loss_values = training_loop(
+    Model, train_loader, test_loader, loss_fn, optimizer, epochs
+)
+</code></pre>
+        <p>This code downloads the dataset, sets up EfficientNet-B0 for transfer learning, fine-tunes the classifier, and achieves strong performance (~93% test accuracy) on a small dataset, demonstrating the power of transfer learning.</p>
+<h2>Conclusion</h2>
+<p>In this series, we’ve covered everything you need to confidently get started with PyTorch. From understanding tensors and autograd to building models for regression and classification, you've gained hands-on experience with key concepts and workflows. We also explored CNNs for computer vision, worked with Torchvision, and touched on transfer learning using pre-trained models like EfficientNet. Along the way, we focused on data preparation, training loops, model evaluation, and optimization. With this foundation, you're now equipped to build and train your own deep learning models and continue exploring the vast PyTorch ecosystem. This is just the beginning—keep experimenting and learning as you dive deeper into the world of deep learning with PyTorch.</p>
+    </section>
+    </div>
+</body>
+</html>
