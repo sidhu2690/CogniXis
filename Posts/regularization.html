@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="sidharth">
+    <meta name="date" content="2025-05-06">
+    <title>Regularization Techniques in Machine Learning</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJH8CP1D4R"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XJH8CP1D4R');
+    </script>
+
+    <!-- Include Polyfill for broader browser support -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- Include MathJax for equations -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+    <style>
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 220px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+        .sidebar h2 {
+            margin-left: 20px;
+            font-size: 18px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .sidebar-link:hover {
+            background-color: #f1f1f1;
+        }
+        .sidebar-link.active {
+            background-color: #e0f0ff;
+            font-weight: bold;
+            color: #2588df;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        section { margin-bottom: 2rem; }
+        h1, h2, h3, h4 { color: #333; }
+        pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+        code { font-family: Consolas, monospace; }
+        .center-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .center-figure img {
+            max-width: 100%;
+            height: auto;
+        }
+        figcaption {
+            font-size: 0.8em;
+            margin-top: 4px;
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            .sidebar ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0;
+                margin: 0;
+            }
+            .sidebar-link {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+        @media screen and (max-width: 480px) {
+            body { font-size: 14px; }
+            .sidebar-link { padding: 8px; }
+            .center-figure { margin: 1rem 0; }
+            pre { font-size: 0.85em; padding: 0.75rem; }
+        }
+    </style>
+</head>
+
+<body id="top">
+    <aside class="sidebar">
+        <h2><a href="https://sidhu2690.github.io/CogniXis/" style="color: inherit; text-decoration: none;">CogniXis</a></h2>
+        <ul>
+            <li><a href="#introduction" class="sidebar-link">1. Introduction</a></li>
+            <li><a href="#bias-variance" class="sidebar-link">2. Bias-Variance Tradeoff</a></li>
+            <li><a href="#bias-variance-math-detailed" class="sidebar-link">3. Bias–Variance Tradeoff: Detailed Mathematical Insight</a></li>
+            <li><a href="#l2-regularization" class="sidebar-link">4. L2 Regularization</a></li>
+            <li><a href="#l1-regularization" class="sidebar-link">5. L1 Regularization</a></li>
+
+        </ul>
+    </aside>
+
+    <div class="content">
+        <header>
+            <h1>Regularization Techniques in Machine Learning</h1>
+            <p><em>A comprehensive guide to understanding and applying regularization methods to prevent overfitting in machine learning models.</em></p>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Regularization is like a safety net in machine learning. It stops our models from getting too caught up in the training data, a problem called overfitting. When a model overfits, it’s great at remembering the training examples but terrible at handling new data because it’s learned all the random quirks (or noise) instead of the real patterns. Regularization steps in to keep things balanced so the model works well in the real world.</p>
+            <p>In this blog, we’ll walk through some key regularization techniques, explain how they work, and show you examples to make it all clear. Let’s dive in!</p>
+        </section>
+
+<section id="bias-variance">
+    <h2>2. Bias-Variance Tradeoff</h2>
+    <p>Before we explore the bias-variance tradeoff, let’s first understand what overfitting is and why it’s a challenge in machine learning. Overfitting happens when a model learns the training data too well, picking up not just the true pattern but also the random noise or quirks in the data. This causes the model to perform poorly on new, unseen data because it’s overly customized to the training set.</p>
+    <p>To see this in action, let’s create a simple dataset using a polynomial equation with three components plus some noise. Suppose the true relationship is:</p>
+    \[ y = 3x^2 - 2x + 1 + \epsilon \]
+    <p>where \( \epsilon \) is a small random noise term. Now, let’s fit three different models to this data:</p>
+    <ol>
+        <li>A linear model: \( y = mx + b \)</li>
+        <li>A quadratic model: \( y = ax^2 + bx + c \)</li>
+        <li>A high-degree polynomial model (e.g., 10th degree): \( y = a_0 + a_1 x + a_2 x^2 + \dots + a_{10} x^{10} \)</li>
+    </ol>
+    <div class="center-figure">
+        <img src="assets/regularization/fit.png" alt="Bias-Variance Example">
+        <figcaption>Figure 1: Underfitting, just-right fitting, and overfitting with polynomial models</figcaption>
+    </div>
+    <p>The linear model is too basic to capture the curve in the data. It misses the true pattern, leading to high bias and underfitting—where predictions are consistently off. The quadratic model fits nicely, matching the true relationship without extra complexity. The high-degree polynomial, however, fits the training data perfectly, following every point, including the noise. But on new data, it fails to generalize because it’s too complicated—this is overfitting, driven by high variance.</p>
+    <p>So, what’s going on here? High bias means the model is too simple and misses the mark (underfitting). High variance means the model is too flexible and overly tuned to the training data (overfitting). The bias-variance tradeoff is about finding a balance—a model that captures the pattern well but isn’t thrown off by noise.</p>
+    <p>How do we check this in practice? We split the data into training and validation sets (sometimes a third test set too). The training set teaches the model, while the validation set tests how it performs on unseen data. We don’t touch the test set until the end—it’s just for final evaluation. During training, we track the loss (error) for both training and validation sets over epochs (training rounds). At first, both losses drop as the model learns. But if the training loss keeps falling while the validation loss rises, that’s overfitting—the model’s getting too cozy with the training data.</p>
+    <div class="center-figure">
+        <img src="assets/regularization/tradeoff.png" alt="Bias-Variance Example">
+        <figcaption>Figure 2: Bias-Variance Tradeoff
+As model complexity increases, bias² decreases and variance increases. The total error (black curve) is minimized at the black dotted point—this is the ideal balance where the model is neither too simple (underfitting) nor too complex (overfitting).</figcaption>
+    </div>
+    <p>By watching these loss trends, we can stop training at the right time or tweak the model to stay in that sweet spot between bias and variance.</p>
+
+</section>
+
+
+<section id="bias-variance-math-detailed">
+  <h2>3. Bias–Variance Tradeoff: Detailed Mathematical Insight</h2>
+  <p>
+    We want to figure out how the error in predicting a new data point, \( (x, y) \), breaks down into three parts: bias squared, variance, and irreducible noise. This error is measured as the mean squared error, \( E[(y - \hat{f}(x))^2] \), and understanding it helps us build better models.
+  </p>
+
+  <h3>3.1. True Data Generating Model</h3>
+  <p>
+    Imagine the real world works like this: \( y = f(x) + \epsilon \). Here, \( f(x) \) is the true pattern we’re trying to learn, and \( \epsilon \) is random noise (like measurement errors) with an average of zero (\( E[\epsilon] = 0 \)) and some spread (\( E[\epsilon^2] = \sigma^2 \)). Our learning algorithm, say a neural network, gives us \( \hat{f}(x) \), an estimate of \( f(x) \) based on training data.
+  </p>
+
+  <h3>3.2. Test-Error Decomposition</h3>
+  <p>
+    For a new point \( (x, y) \), we want to know how far off \( \hat{f}(x) \) is from \( y \). Substitute \( y = f(x) + \epsilon \):
+  </p>
+  <div style="text-align:center;">
+    \[
+      E[(y - \hat{f}(x))^2] = E[(f(x) + \epsilon - \hat{f}(x))^2]
+    \]
+  </div>
+  <p>
+    Expand it out:
+  </p>
+  <div style="text-align:center;">
+    \[
+      = E[(f(x) - \hat{f}(x))^2 + 2\epsilon (f(x) - \hat{f}(x)) + \epsilon^2]
+    \]
+  </div>
+  <p>
+    Now, average each part:
+    - \( E[(f(x) - \hat{f}(x))^2] \): How much our prediction differs from the true pattern.
+    - \( 2E[\epsilon (f(x) - \hat{f}(x))] \): This becomes zero because \( \epsilon \)’s average is zero and it doesn’t depend on \( \hat{f}(x) \).
+    - \( E[\epsilon^2] = \sigma^2 \): The noise’s spread, which we can’t avoid.
+  </p>
+  <p>
+    So:
+  </p>
+  <div style="text-align:center;">
+    \[
+      E[(y - \hat{f}(x))^2] = E[(f(x) - \hat{f}(x))^2] + \sigma^2
+    \]
+  </div>
+  <p>
+    Now, split \( E[(f(x) - \hat{f}(x))^2] \) into bias and variance. Add and subtract the average prediction, \( E[\hat{f}(x)] \):
+  </p>
+  <div style="text-align:center;">
+    \[
+      f(x) - \hat{f}(x) = (f(x) - E[\hat{f}(x)]) + (E[\hat{f}(x)] - \hat{f}(x))
+    \]
+  </div>
+  <p>
+    Square and average it, and the cross term cancels out, leaving:
+  </p>
+  <div style="text-align:center;">
+    \[
+      E[(f(x) - \hat{f}(x))^2] = (E[\hat{f}(x)] - f(x))^2 + E[(\hat{f}(x) - E[\hat{f}(x)])^2]
+    \]
+  </div>
+  <p>
+    The full breakdown is:
+  </p>
+  <div style="text-align:center;">
+    \[
+      E[(y - \hat{f}(x))^2] = (E[\hat{f}(x)] - f(x))^2 + E[(\hat{f}(x) - E[\hat{f}(x)])^2] + \sigma^2
+    \]
+  </div>
+  <p>
+    Here’s what each part means:
+  </p>
+  <ul>
+    <li><strong>Bias squared: \( (E[\hat{f}(x)] - f(x))^2 \)</strong> - How far the average prediction is from the truth. A simple model (e.g., a straight line for curvy data) has high bias.</li>
+    <li><strong>Variance: \( E[(\hat{f}(x) - E[\hat{f}(x)])^2] \)</strong> - How much predictions change if we train on different data. A complex model (e.g., a wiggly curve fitting noise) has high variance.</li>
+    <li><strong>Noise: \( \sigma^2 \)</strong> - Randomness in the data we can’t fix, no matter the model.</li>
+  </ul>
+
+  <p>
+    Therefore the full test‐error decomposition is
+  </p>
+\[
+  \boxed{
+    E\bigl[(y - \hat f(x))^2\bigr]
+    = \underbrace{\bigl(E[\hat f(x)] - f(x)\bigr)^2}_{\text{Bias}^2}
+    + \underbrace{E\bigl[(\hat f(x) - E[\hat f(x)])^2\bigr]}_{\text{Variance}}
+    + \sigma^2
+  }
+\]
+
+  <h3>3.3. Estimating the True Error: Training vs. Test Observations</h3>
+  <p>
+    After breaking down the test error into bias, variance, and noise, we need a practical way to estimate the true error, \( E[(\hat{f}(x_i) - f(x_i))^2] \), which measures how far our model's predictions are from the true function on average. Since we don’t know \( f(x_i) \), we use observed data—either training or test observations—to approximate it. Let’s derive this relationship and explore how it differs between training and test data.
+  </p>
+
+  <h4>Derivation of True Error from Observed Error</h4>
+  <p>
+    Start with a data point where \( y_i = f(x_i) + \epsilon_i \) (noise \( \epsilon_i \) has \( E[\epsilon_i] = 0 \) and \( E[\epsilon_i^2] = \sigma^2 \)), and our model predicts \( \hat{y}_i = \hat{f}(x_i) \). The observed squared error is:
+  </p>
+  \[
+    E[(\hat{y}_i - y_i)^2] = E[(\hat{f}(x_i) - (f(x_i) + \epsilon_i))^2]
+  \]
+  <p>Expand the expression:</p>
+  \[
+    E[(\hat{y}_i - y_i)^2] = E[(\hat{f}(x_i) - f(x_i) - \epsilon_i)^2]
+  \]
+  \[
+    = E[(\hat{f}(x_i) - f(x_i))^2 - 2 \epsilon_i (\hat{f}(x_i) - f(x_i)) + \epsilon_i^2]
+  \]
+  <p>Take the expectation of each term:</p>
+  <ul>
+    <li>\( E[(\hat{f}(x_i) - f(x_i))^2] \): The true error we’re after.</li>
+    <li>\( E[\epsilon_i^2] = \sigma^2 \): The noise variance, a constant.</li>
+    <li>\( -2 E[\epsilon_i (\hat{f}(x_i) - f(x_i))] \): The covariance term, which we’ll analyze next.</li>
+  </ul>
+  <p>Combine them:</p>
+  \[
+    E[(\hat{y}_i - y_i)^2] = E[(\hat{f}(x_i) - f(x_i))^2] - 2 E[\epsilon_i (\hat{f}(x_i) - f(x_i))] + \sigma^2
+  \]
+  <p>Rearrange to isolate the true error:</p>
+  \[
+    E[(\hat{f}(x_i) - f(x_i))^2] = E[(\hat{y}_i - y_i)^2] - \sigma^2 + 2 E[\epsilon_i (\hat{f}(x_i) - f(x_i))]
+  \]
+  <p>
+    This shows the true error is the observed error adjusted by the noise variance and the covariance term. The key difference lies in that covariance term, \( 2 E[\epsilon_i (\hat{f}(x_i) - f(x_i))] \), depending on whether \( (x_i, y_i) \) is a test or training point.
+  </p>
+
+  <h4>Test Observations: Covariance is Zero</h4>
+  <p>
+    For a <strong>test observation</strong>, \( (x_i, y_i) \) is independent of the training data used to fit \( \hat{f} \). Since \( \epsilon_i \) is noise at \( x_i \) and uncorrelated with the training process, the prediction \( \hat{f}(x_i) \) doesn’t depend on \( \epsilon_i \). Thus:
+  </p>
+  \[
+    E[\epsilon_i (\hat{f}(x_i) - f(x_i))] = E[\epsilon_i] \cdot E[\hat{f}(x_i) - f(x_i)] = 0
+  \]
+  <p>
+    (because \( E[\epsilon_i] = 0 \)). So, for test data:
+  </p>
+  \[
+    E[(\hat{y}_i - y_i)^2] = E[(\hat{f}(x_i) - f(x_i))^2] + \sigma^2
+  \]
+  <p>
+    This matches our earlier test-error decomposition, confirming that the observed error on test data directly estimates the true error plus noise.
+  </p>
+
+  <h4>Training Observations: Covariance is Non-Zero</h4>
+  <p>
+    For a <strong>training observation</strong>, \( (x_i, y_i) \) was used to train \( \hat{f} \). Here, \( \hat{f}(x_i) \) depends on \( y_i = f(x_i) + \epsilon_i \), so \( \hat{f}(x_i) \) and \( \epsilon_i \) are correlated. The covariance term:
+  </p>
+  \[
+    E[\epsilon_i (\hat{f}(x_i) - f(x_i))]
+  \]
+  <p>
+    is typically negative because models tend to fit training noise, pulling \( \hat{f}(x_i) \) closer to \( y_i \). This reduces the observed error on training data, making it an optimistic (underestimated) measure of the true error. For example, in an overfit model, \( \hat{f}(x_i) \approx y_i \), so the observed error \( (\hat{y}_i - y_i)^2 \) is near zero, even if the true error is large.
+  </p>
+
+  <h4>Why This Matters</h4>
+  <p>
+    The difference in covariance explains why training error misleads us about generalization. Test data gives an unbiased estimate of \( E[(\hat{f}(x_i) - f(x_i))^2] + \sigma^2 \), reflecting true performance. Training data, with its negative covariance, underestimates error, especially in complex models prone to overfitting. This ties back to the bias-variance tradeoff: balancing model complexity to minimize true error on unseen data.
+  </p>
+<h3>3.4. True Error and Model Complexity</h3> <p> We now dive deeper into how model complexity affects the true error. Using <strong>Stein’s Lemma</strong> and some mathematical insight, we can relate the true error to model sensitivity. In particular, we can derive the following identity: </p> <div style="text-align:center;"> \[ \frac{1}{n} \sum_{i=1}^n \epsilon_i (\hat{f}(x_i) - f(x_i)) = \frac{\sigma^2}{n} \sum_{i=1}^n \frac{\partial \hat{f}(x_i)}{\partial y_i} \] </div> <p> This tells us that the covariance term we encountered earlier—between the noise \( \epsilon_i \) and the model prediction error—depends on how sensitive the model's prediction \( \hat{f}(x_i) \) is to changes in the output value \( y_i \). </p> <h4>Model Sensitivity and Complexity</h4> <p> When is \( \frac{\partial \hat{f}(x_i)}{\partial y_i} \) high? Precisely when a small change in a training observation \( y_i \) causes a large shift in the prediction \( \hat{f}(x_i) \). This sensitivity is a key indicator of <strong>model complexity</strong>. </p> <p> In general: </p> <ul> <li>A <strong>complex model</strong> (e.g., deep networks, high-degree polynomials) will have high sensitivity—its predictions can drastically change with small tweaks in the training data.</li> <li>A <strong>simple model</strong> (e.g., linear regression, low-degree polynomials) is more stable—its predictions change minimally with such perturbations.</li> </ul> <p> This leads to a practical insight: </p> <div style="text-align:center;"> \[ \text{True Error} = \text{Empirical Training Error} + \text{Noise} + \Omega(\text{Model Complexity}) \] </div> <h4>Illustrating Sensitivity</h4> <p> Suppose we fit a simple model and a complex model to some training data. Then, we slightly perturb one training point. The complex model typically adapts sharply to the change, significantly altering its predictions. The simple model, on the other hand, hardly changes—this demonstrates lower sensitivity. </p> <h4>Regularization: Controlling Complexity</h4> <p> This motivates the use of <strong>regularization</strong>. Rather than directly minimizing the training error \( L_{\text{train}}(\theta) \), we minimize: </p> <div style="text-align:center;"> \[ \min_\theta \ L_{\text{train}}(\theta) + \Omega(\theta) = L(\theta) \] </div> <p> Here, \( \Omega(\theta) \) penalizes model complexity. For simple models, \( \Omega(\theta) \) is small; for complex ones, it is large. Interestingly, this penalty approximates the covariance term: </p> <div style="text-align:center;"> \[ \Omega(\theta) \approx \frac{\sigma^2}{n} \sum_{i=1}^n \frac{\partial \hat{f}(x_i)}{\partial y_i} \] </div> <p> This framework underpins many popular regularization techniques: </p> <ul> <li><strong>ℓ<sub>2</sub> regularization</strong> (Ridge): discourages large weights.</li> <li><strong>ℓ<sub>1</sub> regularization</strong> (Lasso): encourages sparsity in parameters.</li> <li><strong>Early stopping</strong>: halts training before overfitting sets in.</li> <li><strong>Input noise injection</strong>: makes the model robust to small data fluctuations.</li> <li><strong>Output noise</strong>: introduces randomness in target values to prevent exact fits.</li> <li><strong>Ensembles</strong>: average predictions from multiple models to reduce variance.</li> <li><strong>Dropout</strong>: randomly disables neurons during training to encourage redundancy and generalization.</li> </ul> <h4>Choosing the Sweet Spot</h4> <p> The goal of regularization is to find the "sweet spot" in the <strong>bias–variance tradeoff</strong>—a model neither too simple (high bias) nor too complex (high variance). This balance is critical, especially in deep neural networks, which are naturally very expressive and prone to overfitting. </p> <p> In the next section, we will explore these regularization techniques in detail and understand how they help control model complexity and improve generalization. </p> 
+            <div class="center-figure">
+                <img src="assets/regularization/tradeoff2.png" alt="tradeoff 2">
+                <figcaption>Figure 3: Bias-variance trade-off illustration: As model complexity increases, bias decreases while variance increases. The optimal balance (sweet spot) minimizes total error. Regularization term $\Omega(\theta)$ helps maintain reasonable complexity..</figcaption>
+            </div>
+</section>
+
+
+
+    
+
+<section id="l2-regularization">
+  <h2>4. L2 Regularization</h2>
+  <p>
+    L2 regularization is a powerful technique to prevent overfitting by penalizing large weights in a model. It adds a term to the loss function that discourages the model from becoming too complex, helping it generalize better to new data. Let’s dive into how it works mathematically, how it’s implemented, and what it means geometrically for our model’s weights.
+  </p>
+
+  <h3>4.1. L2 Regularization: The Modified Loss Function</h3>
+  <p>
+    Normally, we train a model by minimizing a loss function \( L(w) \), where \( w \) is the vector of model weights (e.g., parameters in a neural network). With L2 regularization, we modify the loss to include a penalty term based on the size of the weights:
+  </p>
+  <div style="text-align:center;">
+    \[
+      L_f(w) = L(w) + \frac{\alpha}{2} \|w\|^2
+    \]
+  </div>
+  <p>
+    Here’s what’s happening:
+  </p>
+  <ul>
+    <li>\( L(w) \): The original loss (e.g., mean squared error for regression).</li>
+    <li>\( \|w\|^2 = w^T w \): The squared L2 norm of the weight vector, measuring the “size” of the weights.</li>
+    <li>\( \alpha \): A hyperparameter controlling the strength of regularization. Larger \( \alpha \) means a bigger penalty for large weights.</li>
+    <li>\( \frac{\alpha}{2} \): The \( \frac{1}{2} \) is for mathematical convenience when taking derivatives.</li>
+  </ul>
+  <p>
+    The goal is to minimize \( L_f(w) \), balancing the original loss with keeping weights small, which reduces model complexity and overfitting.
+  </p>
+
+  <h3>4.2. Gradient Descent with L2 Regularization</h3>
+  <p>
+    To optimize \( L_f(w) \), we often use Stochastic Gradient Descent (SGD) or its variants. We need the gradient of the modified loss:
+  </p>
+  <div style="text-align:center;">
+    \[
+      \nabla L_f(w) = \nabla L(w) + \alpha w
+    \]
+  </div>
+  <p>
+    Why? The gradient of \( L(w) \) is \( \nabla L(w) \), and the gradient of the penalty term \( \frac{\alpha}{2} \|w\|^2 = \frac{\alpha}{2} w^T w \) is:
+  </p>
+  \[
+    \nabla \left( \frac{\alpha}{2} w^T w \right) = \alpha w
+  \]
+  <p>
+    So, the update rule for SGD becomes:
+  </p>
+  <div style="text-align:center;">
+    \[
+      w_{t+1} = w_t - \eta \nabla L(w_t) - \eta \alpha w_t
+    \]
+  </div>
+  <p>
+    Where:
+  </p>
+  <ul>
+    <li>\( w_t \): Weights at time step \( t \).</li>
+    <li>\( \eta \): Learning rate.</li>
+    <li>\( \nabla L(w_t) \): Gradient of the original loss.</li>
+    <li>\( - \eta \alpha w_t \): Extra term that “shrinks” the weights toward zero.</li>
+  </ul>
+  <p>
+    This is easy to implement—just add \( \alpha w_t \) to the gradient in your code. The term \( - \eta \alpha w_t \) is like weight decay, nudging weights smaller at each step, which helps prevent the model from fitting noise.
+  </p>
+
+  <h3>4.3. Geometric Interpretation: What’s Happening to the Weights?</h3>
+  <p>
+    To understand L2 regularization’s effect, let’s explore its geometric meaning. Imagine we have the optimal weights \( w^* \) that minimize the unregularized loss \( L(w) \), so \( \nabla L(w^*) = 0 \). With L2 regularization, we get new optimal weights \( w_e \) that minimize \( L_f(w) \). How do \( w_e \) and \( w^* \) differ?
+  </p>
+
+  <h4>Setting Up the Math</h4>
+  <p>
+    Let’s define \( u = w - w^* \), the difference from the unregularized optimum. We approximate \( L(w) \) near \( w^* \) using a second-order Taylor series:
+  </p>
+  \[
+    L(w^* + u) = L(w^*) + u^T \nabla L(w^*) + \frac{1}{2} u^T H u
+  \]
+  <p>
+    Since \( \nabla L(w^*) = 0 \), this simplifies to:
+  </p>
+  \[
+    L(w) = L(w^*) + \frac{1}{2} (w - w^*)^T H (w - w^*)
+  \]
+  <p>
+    Where \( H \) is the Hessian matrix of \( L(w) \) at \( w^* \), capturing the curvature of the loss. The gradient is:
+  </p>
+  \[
+    \nabla L(w) = H (w - w^*)
+  \]
+  <p>
+    Now, the gradient of the regularized loss is:
+  </p>
+  \[
+    \nabla L_f(w) = \nabla L(w) + \alpha w = H (w - w^*) + \alpha w
+  \]
+  <p>
+    At the optimal \( w_e \) for \( L_f(w) \), the gradient is zero:
+  </p>
+  \[
+    \nabla L_f(w_e) = H (w_e - w^*) + \alpha w_e = 0
+  \]
+  \[
+    (H + \alpha I) w_e = H w^*
+  \]
+  \[
+    w_e = (H + \alpha I)^{-1} H w^*
+  \]
+  <p>
+    Notice: if \( \alpha \to 0 \), then \( w_e \to w^* \), recovering the unregularized solution. Non-zero \( \alpha \) shifts \( w_e \), but how?
+  </p>
+
+  <h4>Eigenvalue Decomposition</h4>
+  <p>
+    Assume \( H \) is symmetric positive semi-definite (common for convex loss functions). We can decompose it as:
+  </p>
+  \[
+    H = Q \Lambda Q^T
+  \]
+  <p>
+    Where:
+  </p>
+  <ul>
+    <li>\( Q \): Orthogonal matrix (\( Q Q^T = Q^T Q = I \)), columns are eigenvectors.</li>
+    <li>\( \Lambda \): Diagonal matrix of eigenvalues \( \lambda_1, \lambda_2, \ldots, \lambda_n \).</li>
+  </ul>
+  <p>
+    Rewrite the solution:
+  </p>
+  \[
+    w_e = (H + \alpha I)^{-1} H w^*
+  \]
+  \[
+    = (Q \Lambda Q^T + \alpha Q I Q^T)^{-1} Q \Lambda Q^T w^*
+  \]
+  \[
+    = [Q (\Lambda + \alpha I) Q^T]^{-1} Q \Lambda Q^T w^*
+  \]
+  \[
+    = Q (\Lambda + \alpha I)^{-1} \Lambda Q^T w^*
+  \]
+  \[
+    = Q D Q^T w^*
+  \]
+  <p>
+    Where \( D = (\Lambda + \alpha I)^{-1} \Lambda \), a diagonal matrix. Let’s compute \( D \):
+  </p>
+  \[
+    (\Lambda + \alpha I)^{-1} = \begin{bmatrix}
+      \frac{1}{\lambda_1 + \alpha} & & \\
+      & \frac{1}{\lambda_2 + \alpha} & \\
+      & & \ddots & \\
+      & & & \frac{1}{\lambda_n + \alpha}
+    \end{bmatrix}
+  \]
+  \[
+    D = (\Lambda + \alpha I)^{-1} \Lambda = \begin{bmatrix}
+      \frac{\lambda_1}{\lambda_1 + \alpha} & & \\
+      & \frac{\lambda_2}{\lambda_2 + \alpha} & \\
+      & & \ddots & \\
+      & & & \frac{\lambda_n}{\lambda_n + \alpha}
+    \end{bmatrix}
+  \]
+  <p>
+    Each diagonal element of \( D \), \( \frac{\lambda_i}{\lambda_i + \alpha} \), scales the corresponding direction of \( w^* \).
+  </p>
+
+  <h4>Geometric Interpretation</h4>
+  <p>
+    Let’s break down what \( w_e = Q D Q^T w^* \) means:
+  </p>
+  <ol>
+    <li><strong>Rotate</strong>: \( Q^T w^* \) rotates the unregularized weights \( w^* \) into the eigenvector basis of \( H \).</li>
+    <li><strong>Scale</strong>: \( D \) scales each component by \( \frac{\lambda_i}{\lambda_i + \alpha} \):
+      <ul>
+        <li>If \( \lambda_i \gg \alpha \), then \( \frac{\lambda_i}{\lambda_i + \alpha} \approx 1 \), preserving that direction (important features).</li>
+        <li>If \( \lambda_i \ll \alpha \), then \( \frac{\lambda_i}{\lambda_i + \alpha} \approx 0 \), shrinking that direction (less important features).</li>
+      </ul>
+    </li>
+    <li><strong>Rotate Back</strong>: \( Q \) rotates the scaled vector back to the original coordinate system.</li>
+  </ol>
+  <p>
+    The result? All weights shrink, but directions with large eigenvalues (significant curvature, important features) shrink less, while those with small eigenvalues (less important, noisy directions) shrink more.
+  </p>
+
+  <h3>4.4. Effective Parameters and Feature Selection</h3>
+  <p>
+    L2 regularization effectively reduces the number of “active” parameters. The effective number of parameters can be approximated as:
+  </p>
+  \[
+    \sum_{i=1}^n \frac{\lambda_i}{\lambda_i + \alpha}
+  \]
+  <p>
+    Since \( \frac{\lambda_i}{\lambda_i + \alpha} < 1 \), and it’s close to 0 for small \( \lambda_i \), the sum is less than \( n \), the total number of parameters. This means the model behaves as if it has fewer parameters, focusing on the most important features.
+  </p>
+  <p>
+    By shrinking weights, L2 regularization ensures that only significant directions in the weight space contribute substantially to predictions, reducing overfitting while maintaining predictive power.
+  </p>
+
+  <h3>4.5. Why L2 Regularization Matters</h3>
+  <p>
+    L2 regularization is crucial for complex models like neural networks, which have many parameters and can easily overfit by memorizing training data. By adding the \( \frac{\alpha}{2} \|w\|^2 \) penalty, we:
+  </p>
+  <ul>
+    <li>Keep weights small, reducing model sensitivity to noise.</li>
+    <li>Prioritize important features, as seen in the eigenvalue scaling.</li>
+    <li>Improve generalization, making the model perform better on unseen data.</li>
+  </ul>
+  <p>
+    It’s a simple yet effective way to balance the bias-variance tradeoff, ensuring our model is neither too simple nor too complex.
+  </p>
+</section>
+
+
+<section id="l1-regularization">
+  <h2>5. L1 Regularization (Lasso)</h2>
+  <p>
+    L1 regularization, also known as Lasso (Least Absolute Shrinkage and Selection Operator), is a technique to prevent overfitting by adding a penalty to the loss function. Unlike L2 regularization, which shrinks weights smoothly, L1 regularization encourages <em>sparsity</em>, meaning it pushes many weights to exactly zero. This makes the model simpler and more interpretable, as it effectively selects a subset of features. Let’s explore how it works mathematically, how it’s optimized, and why it leads to sparse solutions.
+  </p>
+
+  <h3>5.1. L1 Regularization: The Modified Loss Function</h3>
+  <p>
+    In a typical machine learning setup, we minimize a loss function \( L(w) \), where \( w \) is the vector of model weights (e.g., parameters in a linear model or neural network). With L1 regularization, we add a penalty based on the absolute values of the weights:
+  </p>
+  <div style="text-align:center;">
+    \[
+      L_f(w) = L(w) + \alpha \|w\|_1
+    \]
+  </div>
+  <p>
+    Let’s break this down:
+  </p>
+  <ul>
+    <li>\( L(w) \): The original loss, like mean squared error for regression or cross-entropy for classification.</li>
+    <li>\( \|w\|_1 = \sum_{i=1}^n |w_i| \): The L1 norm, the sum of the absolute values of the weights.</li>
+    <li>\( \alpha \): A hyperparameter that controls？](https://latex.wikia.org/wiki/Latex:Subscripts_and_superscripts \): Controls the strength of regularization. A larger \( \alpha \) means a stronger penalty, pushing more weights to zero.</li>
+  </ul>
+  <p>
+    The goal is to minimize \( L_f(w) \), balancing fitting the data (via \( L(w) \)) and keeping the model simple by reducing the number of non-zero weights.
+  </p>
+
+  <h3>5.2. Optimization with L1 Regularization</h3>
+  <p>
+    Optimizing \( L_f(w) \) is trickier than with L2 regularization because the L1 norm \( \|w\|_1 \) is not differentiable at \( w_i = 0 \). This non-differentiability is what leads to sparsity, but it requires special optimization techniques.
+  </p>
+
+  <h4>Gradient-Based Optimization</h4>
+  <p>
+    For Stochastic Gradient Descent (SGD) or its variants, we need the gradient of \( L_f(w) \). The gradient of the L1 penalty term \( \alpha \|w\|_1 \) is the subgradient, defined as:
+  </p>
+  \[
+    \partial (\alpha \|w\|_1) = \alpha \cdot \text{sign}(w)
+  \]
+  <p>
+    Where \( \text{sign}(w_i) \) is:
+  </p>
+  <ul>
+    <li>\( +1 \) if \( w_i > 0 \),</li>
+    <li>\( -1 \) if \( w_i < 0 \),</li>
+    <li>\( \in [-1, 1] \) if \( w_i = 0 \) (any value in this range).</li>
+  </ul>
+  <p>
+    So, the subgradient of the regularized loss is:
+  </p>
+  <div style="text-align:center;">
+    \[
+      \partial L_f(w) = \nabla L(w) + \alpha \cdot \text{sign}(w)
+    \]
+  </div>
+  <p>
+    The SGD update rule becomes:
+  </p>
+  \[
+    w_{t+1} = w_t - \eta \nabla L(w_{t}) - \eta \alpha \cdot \text{sign}(w_t)
+  \]
+  <p>
+    Where \( \eta \) is the learning rate. This update pushes weights toward zero: if \( w_i \) is positive, the term \( -\eta \alpha \) reduces it; if negative, \( +\eta \alpha \) increases it (toward zero). If the gradient is small, weights can cross zero and stay there, leading to sparsity.
+  </p>
+
+  <h4>Practical Implementation</h4>
+  <p>
+    In practice, the non-differentiability at zero requires careful handling. Common approaches include:
+  </p>
+  <ul>
+    <li><strong>Proximal Gradient Methods</strong>: Use a proximal operator for the L1 norm, effectively applying soft thresholding:
+      \[
+        w_{t+1} = \text{soft}(w_t - \eta \nabla L(w_t), \eta \alpha)
+      \]
+      Where \( \text{soft}(u, \lambda) = \text{sign}(u) \max(|u| - \lambda, 0) \). This sets weights to zero if they’re small enough.</li>
+    <li><strong>Coordinate Descent</strong>: Optimize one weight at a time, which is efficient for L1-regularized problems like Lasso.</li>
+    <li><strong>Smooth Approximations</strong>: Approximate the L1 norm with a differentiable function for standard gradient descent.</li>
+  </ul>
+  <p>
+    These methods are slightly more complex than L2 regularization but are widely supported in libraries like scikit-learn or TensorFlow.
+  </p>
+
+  <h3>5.3. Geometric Interpretation: Why Sparsity?</h3>
+  <p>
+    To understand why L1 regularization produces sparse solutions, let’s visualize the optimization problem geometrically. Imagine we’re minimizing \( L_f(w) = L(w) + \alpha \|w\|_1 \). The solution \( w_e \) lies where the contours of the loss \( L(w) \) meet the constraint imposed by the L1 penalty.
+  </p>
+
+  <h4>Loss Contours and L1 Constraint</h4>
+  <p>
+    Think of \( L(w) \) as a bowl-shaped function (e.g., quadratic for least squares), with contours that are ellipses in 2D. The L1 penalty \( \alpha \|w\|_1 \) defines a constraint region:
+  </p>
+  \[
+    \|w\|_1 = |w_1| + |w_2| \leq c
+  \]
+  <p>
+    In 2D, this is a diamond shape with vertices at \( (\pm c, 0) \) and \( (0, \pm c) \). The optimal \( w_e \) is where the smallest contour of \( L(w) \) touches the L1 constraint region.
+  </p>
+  <p>
+    Unlike L2 regularization, where the constraint \( \|w\|_2 \leq c \) is a circle (smooth), the L1 diamond has <em>corners</em> on the axes (e.g., \( (c, 0) \)). The elliptical contours of \( L(w) \) are likely to touch the diamond at these corners, setting some weights (e.g., \( w_2 = 0 \)) to exactly zero. This is the key to sparsity: the geometry of the L1 norm favors solutions where some weights are zero.
+  </p>
+
+  <h4>Comparison with L2 Regularization</h4>
+  <p>
+    For L2 regularization (\( \alpha \|w\|_2^2 \)), the circular constraint smooths weights but rarely sets them to zero. L1’s diamond-shaped constraint, with its sharp corners, makes zero weights more likely, effectively performing feature selection by ignoring less important features.
+  </p>
+
+  <h3>5.4. Mathematical Insight: Sparsity via Subgradient</h3>
+  <p>
+    Let’s dive deeper into why weights become zero. At the optimal \( w_e \), the subgradient condition holds:
+  </p>
+  \[
+    \partial L_f(w_e) = \nabla L(w_e) + \alpha \cdot \text{sign}(w_e) = 0
+  \]
+  \[
+    \nabla L(w_e) = -\alpha \cdot \text{sign}(w_e)
+  \]
+  <p>
+    For each weight \( w_{e,i} \):
+  </p>
+  <ul>
+    <li>If \( w_{e,i} \neq 0 \), then \( \text{sign}(w_{e,i}) = \pm 1 \), and the gradient component must balance the penalty: \( \frac{\partial L}{\partial w_i} = \mp \alpha \).</li>
+    <li>If \( w_{e,i} = 0 \), then \( \text{sign}(w_{e,i}) \in [-1, 1] \), so \( \frac{\partial L}{\partial w_i} \in [-\alpha, \alpha] \). If the gradient is small (\( |\frac{\partial L}{\partial w_i}| \leq \alpha \)), the weight can stay at zero.</li>
+  </ul>
+  <p>
+    Features with small gradients (less impact on \( L(w) \)) are driven to zero, while only features with large gradients (important to the loss) survive. This is why L1 acts like automatic feature selection.
+  </p>
+
+  <h3>5.5. Effective Sparsity and Model Simplicity</h3>
+  <p>
+    L1 regularization reduces the number of non-zero weights, creating a sparse model. If the original model has \( n \) parameters, the effective number of parameters is often much less than \( n \), as many \( w_i = 0 \). This sparsity:
+  </p>
+  <ul>
+    <li><strong>Simplifies the Model</strong>: Fewer non-zero weights mean a less complex model, reducing overfitting.</li>
+    <li><strong>Improves Interpretability</strong>: In linear models, zero weights correspond to ignored features, making it clear which variables matter.</li>
+    <li><strong>Reduces Computational Cost</strong>: Sparse models require less memory and faster predictions.</li>
+  </ul>
+
+  <h3>5.6. Why L1 Regularization Matters</h3>
+  <p>
+    L1 regularization is especially valuable when dealing with high-dimensional data (e.g., many features) or complex models like neural networks. It helps by:
+  </p>
+  <ul>
+    <li><strong>Selecting Features</strong>: Automatically identifies and keeps only the most relevant features, crucial in tasks like genomics or text classification.</li>
+    <li><strong>Preventing Overfitting</strong>: By simplifying the model, it improves performance on unseen data, balancing the bias-variance tradeoff.</li>
+    <li><strong>Enhancing Robustness</strong>: Sparse models are less sensitive to noise in irrelevant features.</li>
+  </ul>
+  <p>
+    L1 regularization (Lasso) is a cornerstone of modern machine learning, offering a principled way to build simple, interpretable, and effective models. Its ability to zero out weights makes it uniquely suited for feature selection and robust generalization.
+  </p>
+</section>
+
+
+
+     </div>
+
+    <script>
+        // Highlight active section in sidebar on scroll
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const links = document.querySelectorAll(".sidebar-link");
+            let index = sections.length;
+            while(--index && window.scrollY + 60 < sections[index].offsetTop) {}
+            links.forEach((link) => link.classList.remove("active"));
+            links[index].classList.add("active");
+        });
+    </script>
+</body>
+</html>
