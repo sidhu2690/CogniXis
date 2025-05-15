@@ -136,6 +136,12 @@
             <li><a href="#l2-regularization" class="sidebar-link">4. L2 Regularization</a></li>
             <li><a href="#l1-regularization" class="sidebar-link">5. L1 Regularization</a></li>
 
+ <li><a href="#data-augmentation" class="sidebar-link">6. Data Augmentation</a></li>
+<li><a href="#parameter-sharing-tying" class="sidebar-link">7. Parameter Sharing &amp; Tying</a></li>
+<li><a href="#gaussian-noise-weight-decay" class="sidebar-link">8. Gaussian Input Noise &amp; Weight Decay</a></li>
+ 
+ <li><a href="#early-stopping" class="sidebar-link">9. Early Stopping</a></li>
+ <li><a href="#dropout" class="sidebar-link">10. Dropout</a></li>
         </ul>
     </aside>
 
@@ -579,7 +585,7 @@ As model complexity increases, bias² decreases and variance increases. The tota
   <ul>
     <li>\( L(w) \): The original loss, like mean squared error for regression or cross-entropy for classification.</li>
     <li>\( \|w\|_1 = \sum_{i=1}^n |w_i| \): The L1 norm, the sum of the absolute values of the weights.</li>
-    <li>\( \alpha \): A hyperparameter that controls？](https://latex.wikia.org/wiki/Latex:Subscripts_and_superscripts \): Controls the strength of regularization. A larger \( \alpha \) means a stronger penalty, pushing more weights to zero.</li>
+    <li>\( \alpha \): A hyperparameter that controls the strength of regularization. A larger \( \alpha \) means a stronger penalty, pushing more weights to zero.</li>
   </ul>
   <p>
     The goal is to minimize \( L_f(w) \), balancing fitting the data (via \( L(w) \)) and keeping the model simple by reducing the number of non-zero weights.
@@ -711,6 +717,295 @@ As model complexity increases, bias² decreases and variance increases. The tota
 
 
 
+
+<section id="data-augmentation">
+  <h2>6. Data Augmentation</h2>
+  <p>
+    Often, we don’t have enough labeled images to train a robust model. Data augmentation fixes that by creating new examples through transformations that don’t change the label. For example, a handwritten “7” stays a “7” even if you
+    rotate it, shift it, blur it, or tweak a few pixels.
+  </p>
+  <p>
+    By adding these transformed images to our training set, we give the model more variety to learn from—“more data, better learning.” This trick works especially well for image classification and object recognition (and even speech!), though for some tasks it’s not always obvious how to generate valid new examples.
+  </p>
+  <div class="center-figure">
+    <img src="assets/regularization/pixels.png" alt="Examples of data augmentation on a handwritten digit">
+    <figcaption>Figure 4: Applying rotations, shifts, blurs, and noise to expand your dataset.</figcaption>
+  </div>
+</section>
+
+
+
+<section id="parameter-sharing-tying">
+  <h2>7. Parameter Sharing &amp; Tying</h2>
+  <p>
+    Modern neural nets often reuse the same parameters in multiple places to reduce the number of free weights and enforce useful structure.
+  </p>
+  <h3>Parameter Sharing</h3>
+  <p>
+    In convolutional neural networks (CNNs), the same small filter (kernel) is slid across different parts of the image. This means one set of weights “looks” for the same feature everywhere—edges, corners or textures—so the model learns much fewer parameters and gains built‐in invariance to location.
+  </p>
+  <p>
+    More generally, you can share a weight matrix across different input neurons or time steps (as in recurrent nets), ensuring that the same transformation is applied in many contexts.
+  </p>
+  <h3>Parameter Tying</h3>
+  <p>
+    Parameter tying goes one step further by forcing two or more layers to use exactly the same weights. A common example is in autoencoders: the decoder weights are set to be the transpose of the encoder weights. This both cuts down on parameters and encourages the hidden code to capture meaningful, invertible structure.
+  </p>
+  <p>
+    By sharing and tying parameters, networks become smaller, train more reliably on limited data, and often generalize better to new inputs.
+  </p>
+</section>
+
+
+
+<section id="gaussian-noise-weight-decay">
+  <h2>8. Gaussian Input Noise &amp; Weight Decay</h2>
+
+  <p>
+    A neat trick: if you add small Gaussian noise to each input feature, it turns out that you’re implicitly penalizing large weights—just like L₂ regularization (weight decay).
+  </p>
+
+  <h3>Perturbing the Inputs</h3>
+  <p>
+    We take each original input \(x_i\) and add noise:
+  </p>
+  <p style="text-align:center;">
+    \[
+      x_i' = x_i + \varepsilon_i,
+      \quad
+      \varepsilon_i \sim \mathcal{N}(0, \sigma^2).
+    \]
+  </p>
+  <p>
+    Here \(\varepsilon_i\) is zero-mean Gaussian noise with variance \(\sigma^2\). Each feature gets its own little shake.
+  </p>
+
+  <h3>Predictions With &amp; Without Noise</h3>
+  <p>
+    Without noise, the model’s prediction is
+  </p>
+  <p style="text-align:center;">
+    \[
+      y_b = \sum_{i=1}^n w_i\,x_i.
+    \]
+  </p>
+  <p>
+    With the noisy input, it becomes
+  </p>
+  <p style="text-align:center;">
+    \[
+      y_e 
+      = \sum_{i=1}^n w_i\,x_i'
+      = \sum_{i=1}^n w_i\,(x_i + \varepsilon_i)
+      = y_b + \sum_{i=1}^n w_i\,\varepsilon_i.
+    \]
+  </p>
+  <p>
+    So the noise introduces an extra term \(\sum_i w_i \varepsilon_i\) on top of the clean prediction.
+  </p>
+
+  <h3>Expected Squared Error</h3>
+  <p>
+    We care about the average squared error:
+  </p>
+  <p style="text-align:center;">
+    \[
+      \mathbb{E}\bigl[(y_e - y)^2\bigr]
+      = \mathbb{E}\Bigl[\bigl(y_b + \sum_i w_i\varepsilon_i - y\bigr)^2\Bigr].
+    \]
+  </p>
+  <p>
+    Expand that square:
+  </p>
+  <p style="text-align:center;">
+    \[
+      = \underbrace{\mathbb{E}\bigl[(y_b - y)^2\bigr]}_{\text{original loss}}
+      + 2\,\mathbb{E}\Bigl[(y_b - y)\sum_i w_i\varepsilon_i\Bigr]
+      + \mathbb{E}\Bigl[\bigl(\sum_i w_i\varepsilon_i\bigr)^2\Bigr].
+    \]
+  </p>
+  <p>
+    The middle term vanishes because the noise \(\varepsilon_i\) has zero mean and is independent of \((y_b - y)\). For the last term:
+  </p>
+  <p style="text-align:center;">
+    \[
+      \mathbb{E}\Bigl[\bigl(\sum_i w_i\varepsilon_i\bigr)^2\Bigr]
+      = \sum_{i=1}^n w_i^2\,\mathbb{E}[\varepsilon_i^2]
+      = \sigma^2 \sum_{i=1}^n w_i^2.
+    \]
+  </p>
+
+  <h3>The L₂ Penalty Emerges</h3>
+  <p>
+    Putting it all together:
+  </p>
+  <p style="text-align:center;">
+    \[
+      \mathbb{E}\bigl[(y_e - y)^2\bigr]
+      = \mathbb{E}\bigl[(y_b - y)^2\bigr]
+      + \sigma^2 \sum_{i=1}^n w_i^2.
+    \]
+  </p>
+  <p>
+    The extra \(\sigma^2\sum w_i^2\) term is exactly an L₂ (weight-decay) penalty. So in expectation, training with Gaussian input noise is equivalent to adding L₂ regularization on your weights.
+  </p>
+</section>
+
+
+<section id="early-stopping">
+  <h2>9. Early Stopping</h2>
+
+  <p>
+    Early stopping is a simple yet powerful form of regularization: you monitor validation error and halt training once it stops improving, preventing overfitting.
+  </p>
+
+  <h3>Basic Procedure</h3>
+  <p>
+    Track the validation error at each step. If no improvement occurs in the last \(p\) steps (the “patience”), stop at step \(k\) and roll back to the model parameters at step \(k - p\).
+  </p>
+
+  <h3>Intuitive Explanation</h3>
+  <p>
+    By stopping early, you prevent the training loss from collapsing to zero in ways that hurt generalization. It effectively limits how far your parameters can wander from their initial values.
+  </p>
+
+  <h3>SGD &amp; Exploration</h3>
+  <p>
+    Recall the SGD update:
+  </p>
+  <p style="text-align:center;">
+    \[
+      w_{t+1} = w_t - \eta \nabla L(w_t)
+            = w_0 - \eta \sum_{i=1}^t \nabla L(w_i).
+    \]
+  </p>
+  <p>
+    If \(\tau\) bounds \(\|\nabla L(w)\|\), then
+  </p>
+  <p style="text-align:center;">
+    \[
+      \|w_{t+1} - w_0\| \le \eta\,t\,|\tau|.
+    \]
+  </p>
+  <p>
+    The number of steps \(t\) controls how far parameters can move from \(w_0\).
+  </p>
+
+  <h3>Mathematical Analysis</h3>
+  <p>
+    Around the optimum \(w^*\), use the Taylor expansion
+  </p>
+  <p style="text-align:center;">
+    \[
+      L(w)
+      = L(w^*) + (w - w^*)^T \nabla L(w^*) + \tfrac12 (w - w^*)^T H (w - w^*)
+      = L(w^*) + \tfrac12 (w - w^*)^T H (w - w^*),
+    \]
+  </p>
+  <p>
+    since \(\nabla L(w^*) = 0\). Then \(\nabla L(w) = H(w - w^*)\). The SGD update becomes
+  </p>
+  <p style="text-align:center;">
+    \[
+      w_t = w_{t-1} - \eta H (w_{t-1} - w^*)
+           = (I - \eta H) w_{t-1} + \eta H w^*.
+    \]
+  </p>
+  <p>
+    Write \(H = Q \Lambda Q^T\) (EVD) and start from \(w_0 = 0\). One shows:
+  </p>
+  <p style="text-align:center;">
+    \[
+      w_t = Q \bigl[I - (I - \eta \Lambda)^t\bigr] Q^T w^*.
+    \]
+  </p>
+  <p>
+    Compare to the L₂‐regularized solution
+  </p>
+  <p style="text-align:center;">
+    \[
+      \widetilde w
+      = Q \bigl[I - (\Lambda + \alpha I)^{-1}\alpha \bigr] Q^T w^*.
+    \]
+  </p>
+  <p>
+    If \((I - \eta \Lambda)^t = (\Lambda + \alpha I)^{-1}\alpha\), then early stopping at \(t\) is equivalent to weight decay with coefficient \(\alpha\).
+  </p>
+
+  <ul>
+    <li>
+      Early stopping limits training to \(t\) updates, effectively shrinking parameters in low‐signal directions.
+    </li>
+    <li>
+      Important dimensions (large \(\partial L/\partial w\)) grow quickly; unimportant ones stay small.
+    </li>
+    <li>
+      It can be combined with other regularizers (e.g.\ L₂) for extra robustness.
+    </li>
+  </ul>
+</section>
+
+
+
+<section id="dropout">
+<h2>10. Dropout</h2>
+
+<p>Dropout is a clever trick used in neural networks to stop them from overfitting. Imagine you’re training a big network with lots of neurons working together. Sometimes, these neurons get too comfortable with the training data and start memorizing it instead of learning general patterns. Dropout shakes things up by randomly turning off some neurons during training. This forces the network to adapt and learn more robust features that work well on new, unseen data.</p>
+
+<h3> How Dropout Works</h3>
+
+<p>During training, dropout picks a random set of neurons in a layer and sets their outputs to zero. It’s like temporarily kicking them out of the team for that round. For example, if you have a layer with 10 neurons, dropout might turn off 3 of them in one pass, then a different 4 in the next. The network has to make do with whoever’s left, which changes each time.</p>
+
+<p>Mathematically, let’s say a layer takes an input \( x \) and multiplies it by weights \( W \) to get an output \( y \), like this:</p>
+
+\[ y = W x + b \]
+
+<p>With dropout, we add a mask \( m \), which is a vector of 1s and 0s. Each neuron has a probability \( p \) of staying on (1) and a chance \( 1 - p \) of being dropped (0). The output becomes:</p>
+
+\[ y = (W \cdot (x \odot m)) + b \]
+
+<p>Here, \( \odot \) means element-wise multiplication—each input gets multiplied by its mask value (0 or 1). This randomly zeros out parts of the layer’s output.</p>
+
+<h3> Training vs. Testing</h3>
+
+<p>Dropout only happens during training. When you’re testing the model or using it in the real world, you want the full network, not a chopped-up version. But here’s the thing: during training, only a fraction \( p \) of neurons are active, so the outputs are smaller on average. To fix this at test time, we scale the weights by \( p \):</p>
+
+\[ y_{\text{test}} = p \cdot W x + b \]
+
+<p>This keeps the expected output consistent between training and testing. It’s like averaging out all the random dropouts you did during training.</p>
+
+<h3> Why Dropout Helps</h3>
+
+<p>Dropout is like training a bunch of smaller networks at once. Each time you drop neurons, you’re using a different “thinned” version of the network. By the end of training, it’s as if you’ve combined all these mini-networks into one. At test time, using the full network mimics this averaging effect, which smooths out predictions and reduces overfitting.</p>
+
+<p>It also stops neurons from relying too much on each other. Without dropout, some neurons might team up too closely and overfit to quirks in the training data. Dropout breaks up these cliques, making the network more independent and resilient.</p>
+
+<h3>Choosing the Dropout Rate</h3>
+
+<p>The dropout rate, \( 1 - p \), decides how many neurons get turned off. A common range is 0.2 to 0.5—meaning 20% to 50% of neurons drop out. If you drop too many (say, 80%), the network might not learn enough from the data, leading to underfitting. If you drop too few (like 5%), it might not regularize enough to stop overfitting. You usually tweak this rate based on your model and data.</p>
+
+<h3>Dropout in Practice</h3>
+
+<p>Dropout is mostly used in the hidden layers of neural networks, especially in deep ones like those for image or text tasks. In convolutional neural networks (CNNs), it’s often added to the fully connected layers after the convolutional ones. There’s also a special version called spatial dropout for CNNs, which drops entire feature maps instead of individual neurons.</p>
+
+<p>Luckily, adding dropout is super easy in tools like TensorFlow or PyTorch—just add a dropout layer and set the rate!</p>
+
+<h3>Why Dropout Matters</h3>
+
+<p>Dropout is a big deal for deep neural networks, which have tons of parameters and can easily overfit. By randomly dropping neurons, it:</p>
+
+<ul>
+    <li>Makes the network more robust by spreading out the learning.</li>
+    <li>Cuts down overfitting by stopping the model from memorizing training data.</li>
+    <li>Boosts generalization, so the model performs better on new data.</li>
+</ul>
+
+<p>It’s a simple idea—randomly turn stuff off—but it’s super effective at keeping complex models in check.</p>
+</section>
+
+<p>
+In this post, we've covered essential regularization techniques like L2, L1, data augmentation, and dropout, which help prevent overfitting in machine learning models. These methods enhance generalization by adding constraints or penalties, ensuring models perform well on new data. Selecting the right technique depends on your data and model specifics, so feel free to experiment and optimize for better, more reliable results.
+</p>
      </div>
 
     <script>
