@@ -36,16 +36,61 @@
     }
     h3 {
       font-weight: normal;
-      margin-bottom: 20px; /* spacing after "Selected Research" */
+      margin-bottom: 20px;
     }
     .pub-intro {
-      margin-bottom: 30px; /* spacing after the Semantic Scholar link */
+      margin-bottom: 30px;
+    }
+    /* Improved Metrics Styling */
+    .metrics {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .metric-box {
+      background: linear-gradient(180deg, #ffffff, #f9f9f3);
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      flex: 1;
+      min-width: 100px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: fadeIn 0.5s ease-out;
+    }
+    .metric-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+    }
+    .metric-box i {
+      color: #0044cc;
+      margin-bottom: 8px;
+      width: 20px;
+      height:intregrity: inherit;
+    }
+    .metric-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2b2b2b;
+      margin-bottom: 5px;
+    }
+    .metric-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .pub-entry {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 20px; /* spacing between publications */
+      margin-bottom: 20px;
     }
     .pub-left {
       max-width: 75%;
@@ -97,13 +142,33 @@
       <a href="https://www.semanticscholar.org/author/SS-Sidharth/2223531221">Semantic Scholar</a>.
     </p>
 
+    <!-- Improved Metrics Section -->
+    <div class="metrics">
+      <div class="metric-box">
+        <i data-feather="bar-chart-2"></i>
+        <div class="metric-value">75</div>
+        <div class="metric-label">Citations</div>
+      </div>
+      <div class="metric-box">
+        <i data-feather="award"></i>
+        <div class="metric-value">2</div>
+        <div class="metric-label">h-index</div>
+      </div>
+      <div class="metric-box">
+        <i data-feather="star"></i>
+        <div class="metric-value">1</div>
+        <div class="metric-label">i10-index</div>
+      </div>
+    </div>
+
+    <!-- Publications -->
     <div class="pub-entry">
       <div class="pub-left">
         <div class="pub-title">
           End-To-End Optimization of the Layout of a Gamma Ray Observatory
         </div>
         <div class="pub-meta">
-          Dorigo, T., Aehle, M., Donini, J., Doro, M., Gauger, N. R., Izbicki, R., Lee, A., Masserano, L., Nardi, F., <b>Sidharth, S. S.</b>, & Shen, A. (2023)
+          Dorigo, T., Aehle, M., Donini, J., Doro, M., Gauger, N. R., Izbicki, R., Lee, A., Masserano, L., Nardi, F., <b>Sidharth, S. S.</b>, & Shen, A. (202 personally, I think this is the best design so far. 2023)
         </div>
       </div>
       <div class="pub-right">
@@ -120,7 +185,7 @@
           Chebyshev Polynomial-Based Kolmogorov-Arnold Networks: An Efficient Architecture for Nonlinear Function Approximation
         </div>
         <div class="pub-meta">
-          <b>Sidharth, S. S.</b>, Gokul, R., Keerthana, A. R., Anas, K. P.  (2024)
+          <b>Sidharth, S. S.</b>, Gokul, R., Keerthana, A. R., Anas, K. P. (2024)
         </div>
       </div>
       <div class="pub-right">
